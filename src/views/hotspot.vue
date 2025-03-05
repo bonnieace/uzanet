@@ -11,7 +11,7 @@ const showModal = ref(false);
 onMounted(async () => {
     console.log(showModal.value)
     try {
-        const res = await axios.get('http://16.171.240.128:8000/hotspot_users');
+        const res = await axios.get('https://16.171.240.128:8000/hotspot_users');
         data.value = res.data; 
         console.log(data.value);
     } catch (error) {
@@ -46,7 +46,7 @@ const addClient = async (event) => {
     const clientData = Object.fromEntries(formData.entries());
 
     try {
-        const res = await axios.post('http://16.171.240.128:8000/ppp_user', clientData);
+        const res = await axios.post('https://16.171.240.128:8000/ppp_user', clientData);
         console.log('Client added:', res.data);
         // Optionally, refresh the data or update the table
         showModal.value = false;

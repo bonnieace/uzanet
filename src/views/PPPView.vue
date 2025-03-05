@@ -7,7 +7,7 @@ const data=ref([])
 
 onMounted(async () => {
     try {
-        const res = await axios.get('http://16.171.240.128:8000/ppp_users');
+        const res = await axios.get('https://16.171.240.128:8000/ppp_users');
         data.value = res.data;
         console.log(data.value)
     } catch (error) {

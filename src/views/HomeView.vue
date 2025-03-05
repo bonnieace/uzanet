@@ -10,9 +10,9 @@ const data=ref([])
 
 onMounted(async () => {
     try {
-        const res = await axios.get('http://16.171.240.128:8000/logs');
+        const res = await axios.get('https://16.171.240.128:8000/logs');
         data.value = res.data;
-        const res2=await axios.get('http://16.171.240.128:8000/payments')
+        const res2=await axios.get('https://16.171.240.128:8000/payments')
         payments.value=res2.data
         console.log(payments.value);
         
