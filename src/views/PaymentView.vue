@@ -7,7 +7,7 @@ const data=ref([])
 
 
 onMounted(async() => {
-    const res=await axios.get('https://16.171.240.128:8000/payments')
+    const res=await axios.get('https://uzanet.duckdns.org/payments')
     data.value=res.data
     console.log(data.value)
     
