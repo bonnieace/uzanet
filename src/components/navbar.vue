@@ -28,10 +28,11 @@ onMounted(() => {
             <h2>{{ route.name }}</h2>
         </div>
         <div class="header-right">
-            <div class="theme-toggle" @click="toggleTheme">
+         <!--   <div class="theme-toggle" @click="toggleTheme">
                 <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'"></i>
-            </div>
+            </div>-->
             <div class="user-profile">
+                <i class="fas fa-user-circle"></i>
                 <span> Admin</span>
             </div>
         </div>

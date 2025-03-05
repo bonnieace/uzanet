@@ -1,64 +1,103 @@
 <script setup>
-
-const props=defineProps({
-    icon:{
-        type:String,
-        default:'fas fa-wallet'
-
+const props = defineProps({
+    icon: {
+        type: String,
+        default: 'fas fa-wallet'
     },
-    amount:{
+    amount: {
+        type: [Number, String],
+        required: true
     },
-    title:{
-        type:String,
-        default:'title'
+    title: {
+        type: String,
+        default: 'Title'
     },
-    pay:{
-        type:Boolean,
-        default:true
+    pay: {
+        type: Boolean,
+        default: true
     }
-
-
 })
 </script>
+
 <template>
-    <div class="card">
-        <h3><i :class="props.icon"></i>{{ props.title }}</h3>
-        <p v-if="props.pay">KES {{ props.amount }} </p>
-        <p v-else>{{ props.amount }} Active</p>
-            
+    <div class="modern-card">
+        <div class="card-header">
+            <i :class="props.icon"></i>
+            <h3>{{ props.title }}</h3>
+        </div>
+        <div class="card-content">
+            <p v-if="props.pay" class="amount-paid">+ Ksh. {{ props.amount }}</p>
+            <p v-else class="amount-active">{{ props.amount }} Active</p>
+        </div>
     </div>
 </template>
-<style>
-.card {
-  background-color: var(--card-background);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+<style scoped>
+.modern-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    max-width: 300px;
+    overflow: hidden;
+    position: relative;
 }
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.modern-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
 }
 
-.card h3 {
-  margin: 0 0 10px;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-color);
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
 }
 
-.card h3 i {
-  color: var(--primary-color);
+.card-header i {
+    font-size: 24px;
+    color: #6a11cb;
+    background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.card p {
-  margin: 0;
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--text-color);
+.card-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card-content {
+    text-align: right;
+}
+
+.amount-paid {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2ecc71;
+    margin: 0;
+}
+
+.amount-active {
+    font-size: 28px;
+    font-weight: 700;
+    color: #3498db;
+    margin: 0;
+}
+
+.modern-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 </style>
