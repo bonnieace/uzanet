@@ -95,5 +95,19 @@ table tr:nth-child(even) {
     .table-container {
         border-radius: 8px;
     }
+
+    .tables {
+        padding: 10px;
+    }
+    .tables h3 {
+        font-size: 1rem;
+        padding-bottom: 5px;
+    }
+    table th, table td {
+        padding: 10px;
+    }
+    table {
+        min-width: 100%;
+    }
 }
 </style>

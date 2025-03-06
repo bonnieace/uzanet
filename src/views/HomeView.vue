@@ -4,6 +4,7 @@ import { ref,onMounted,computed } from 'vue';
 import card from '@/components/card.vue';
 import graph from '@/components/graph.vue';
 import Table from '@/components/Table.vue';
+import Chart from '@/components/chart.vue';
 
 const payments=ref([])
 const data=ref([])
@@ -86,11 +87,13 @@ const rows = computed(() => {
                    <card title="Monthly Earnings" icon="fas fa-calendar-alt" :amount=" monthlytotalearnings"/>
                    <card title="Daily PPPoE Earnings" :amount="dailyppp " icon="fas fa-user-check" />
                    <card title="Daily Hotspot Earnings" :amount="dailyhotspot " icon="fas fa-wifi" />
+                   
 
                     
                     
                     
                 </div>
+                
 
                 <!-- Table -->
                  
