@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink,useRoute } from 'vue-router';
 const route=useRoute()
+
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar toggle functionality
     const sidebar = document.getElementById('sidebar');
@@ -15,21 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile menu toggle
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-    const mobileDropdown = document.querySelector('.mobile-dropdown');
-    
-    mobileMenuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        mobileDropdown.classList.toggle('active');
-    });
-
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!mobileMenuToggle.contains(e.target) && !mobileDropdown.contains(e.target)) {
-            mobileDropdown.classList.remove('active');
-        }
-    });
+   
 
     
 
