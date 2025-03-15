@@ -5,6 +5,7 @@ import card from '@/components/card.vue';
 import graph from '@/components/graph.vue';
 import Table from '@/components/Table.vue';
 import Chart from '@/components/chart.vue';
+import CustomLoader from '@/components/customLoader.vue';
 
 const payments=ref([])
 const data=ref([])
@@ -80,6 +81,8 @@ const rows = computed(() => {
 </script>
 <template>
     <div class="content">
+    <CustomLoader v-if="!data.length" />
+        <div v-else>
                 <!-- Cards -->
                 <div class="cards">
                    <card title="Daily Earnings" icon="fas fa-wallet" :amount="dailytotalearnings "/>
@@ -104,4 +107,5 @@ const rows = computed(() => {
                
                 <graph/>
             </div>
+        </div>
 </template>

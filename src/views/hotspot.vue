@@ -2,60 +2,51 @@
 import axios from 'axios';
 import { onMounted, ref, computed } from 'vue';
 import Table from '@/components/Table.vue';
-import Search from '@/components/search.vue';
-
+import { useMainStore } from '@/stores/store';
+import search from '@/components/search.vue';
+import customLoader from '@/components/customLoader.vue';
+const store = useMainStore();
 const data = ref([]);
-const showModal = ref(false);
 
-// Form data state
-const clientData = ref({
-    otp: '',
-    phone_number: '',
-    amount: ''
-});
+// Default client data structure
+const defaultClientData = { otp: '', phone_number: '', amount: '' };
+const clientData = ref({ ...defaultClientData });
 
 onMounted(async () => {
-    console.log(showModal.value);
+    store.setLoading(true); // Start loading
+
     try {
+        
+
         const res = await axios.get('https://uzanet.duckdns.org/hotspot_users');
         data.value = res.data;
-        console.log(data.value);
+        store.filteredData = res.data; // Initialize filtered data
+        
+
     } catch (error) {
         console.error('Error fetching hotspot users:', error);
+    }finally {
+        store.setLoading(false); // Stop loading
     }
 });
+// Dynamically extract table columns from the data
+const columns = computed(() => data.value.length ? Object.keys(data.value[0]) : []);
 
-const columns = computed(() => {
-    if (data.value && data.value.length > 0) {
-        return Object.keys(data.value[0]);
-    }
-    return [];
-});
+// Use filtered data from the store
+const rows = computed(() => store.filteredData);
 
-const rows = computed(() => data.value);
-
-const openModal = () => {
-    console.log('CLICKED');
-    showModal.value = true;
+// Handle updates from Search component
+const handleFilteredListUpdate = (updatedList) => {
+    store.filteredData = updatedList;
 };
 
-const closeModal = () => {
-    showModal.value = false;
-};
-
-// Function to submit form data
+// Submit form data
 const handleSubmit = async () => {
     try {
-        console.log(clientData.value);
-        // Convert client data to query parameters
-        const queryString = new URLSearchParams(clientData.value).toString();
-        console.log(queryString);
 
-        // Make the request
+        const queryString = new URLSearchParams(clientData.value).toString();
         const response = await axios.post(`https://uzanet.duckdns.org/hotspot_user?${queryString}`, null, {
-            headers: {
-                'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
         });
 
         console.log('✅ Client added successfully:', response.data);
@@ -63,27 +54,33 @@ const handleSubmit = async () => {
         // Refresh data after successful submission
         const res = await axios.get('https://uzanet.duckdns.org/hotspot_users');
         data.value = res.data;
+        store.filteredData = res.data;
 
-        // Close modal and reset form
-        closeModal();
-        clientData.value = { otp: '', phone_number: '', amount: '' };
+        store.closeModal();
+        clientData.value = { ...defaultClientData }; // Reset form
     } catch (error) {
         console.error('❌ Error adding client:', error.response?.data || error.message);
+    } finally {
+        store.setLoading(false); // Stop loading
     }
 };
 </script>
 
 <template>
     <div class="content">
-        <Search :clicked="openModal" />
+        <search 
+            :clicked="store.openModal" 
+            :list="data" 
+            :search-keys="columns" 
+            @updateFilteredList="handleFilteredListUpdate" 
+        />
 
         <!-- Add Client Modal -->
-        <div v-show="showModal" id="add-client-modal" class="modal">
+        <div  v-show="store.showModal" id="add-client-modal" class="modal">
             <div class="modal-content">
-                <span class="close-modal" @click="closeModal">&times;</span>
+                <span class="close-modal" @click="store.closeModal">&times;</span>
                 <h3>Add New Client</h3>
-                <form id="add-client-form" @submit.prevent="handleSubmit">
-                    <!-- OTP Field -->
+                <form @submit.prevent="handleSubmit">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="otp">OTP*</label>
@@ -91,7 +88,6 @@ const handleSubmit = async () => {
                         </div>
                     </div>
 
-                    <!-- Phone Number -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="phone_number">Phone Number*</label>
@@ -99,7 +95,6 @@ const handleSubmit = async () => {
                         </div>
                     </div>
 
-                    <!-- Amount -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="amount">Amount*</label>
@@ -107,54 +102,16 @@ const handleSubmit = async () => {
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="submit-button">Add Client</button>
+                    <button type="submit" class="submit-button" :disabled="store.isLoading">
+                        {{ store.isLoading ? 'Adding...' : 'Add Client' }}
+                    </button>
                 </form>
             </div>
         </div>
+        <customLoader  v-if="store.isLoading"/>
 
-        <!-- Content Area -->
-        <div class="tables">
-            <Table title="Client details" :columns="columns" :rows="rows"></Table>
+        <div class="tables" v-else>
+            <Table title="Client details" :columns="columns" :rows="rows" />
         </div>
     </div>
 </template>
-
-                    <!-- Profile/Plan and PPPoE Password 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="profile">Select Profile/Plan*</label>
-                            <select id="profile" name="profile" required>
-                                <option value="10 Mbps">10 Mbps</option>
-                                <option value="20 Mbps">20 Mbps</option>
-                                <option value="50 Mbps">50 Mbps</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="pppoe-password">PPPoE Password*</label>
-                            <input type="password" id="pppoe-password" name="pppoe-password" placeholder="user1234" required>
-                        </div>
-                    </div>-->
-
-                    <!-- Coordinates and House 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="coordinates">Coordinates (Optional)</label>
-                            <input type="text" id="coordinates" name="coordinates" placeholder="-3.5000,35.4000">
-                        </div>
-                        <div class="form-group">
-                            <label for="house">House (Optional)</label>
-                            <input type="text" id="house" name="house" placeholder="C8">
-                        </div>
-                    </div>-->
-
-                    <!-- Expiry Date 
-                    <div class="form-group">
-                        <label for="expiry">Select Expiry Date (Recommended)</label>
-                        <input type="date" id="expiry" name="expiry" required>
-                    </div>-->
-
-                    <!-- Submit Button -->
-                  
-        <!-- Content Area -->
-       

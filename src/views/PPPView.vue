@@ -3,18 +3,16 @@ import { ref, onMounted, computed } from 'vue';
 import Table from '@/components/Table.vue';
 import axios from 'axios';
 import Search from '@/components/search.vue';
+import { useMainStore } from '@/stores/store';
+import CustomLoader from '@/components/customLoader.vue';
 
+const store=useMainStore()
 const data = ref([]);
-const showModal = ref(false);
 
-const openModal = () => {
-    console.log('CLICKED');
-    showModal.value = true;
-};
 
-const closeModal = () => {
-    showModal.value = false;
-};
+
+
+
 
 async function addClient(clientData) {
     try {
@@ -47,11 +45,13 @@ const handleSubmit = async (event) => {
         
         // Reset form and close modal on success
         event.target.reset();
-        closeModal();
+        store.closeModal();
         
         // Refresh client list
         const res = await axios.get('https://uzanet.duckdns.org/ppp_users');
         data.value = res.data;
+        store.filteredData = res.data; // Initialize filtered data
+
     } catch (error) {
         console.error('Failed to submit form:', error);
         // Handle form submission error (you could add error messaging here)
@@ -59,12 +59,17 @@ const handleSubmit = async (event) => {
 };
 
 onMounted(async () => {
+    store.setLoading(true);
     try {
         const res = await axios.get('https://uzanet.duckdns.org/ppp_users');
         data.value = res.data;
+        store.filteredData = res.data; // Initialize filtered data
+
         console.log(data.value);
     } catch (error) {
         console.log(error);
+    }finally{
+        store.setLoading(false);
     }
 });
 
@@ -75,19 +80,20 @@ const columns = computed(() => {
     return [];
 });
 
-const rows = computed(() => {
-    return data.value;
-});
+const rows = computed(() => store.filteredData);
+const handleFilteredListUpdate = (updatedList) => {
+    store.filteredData = updatedList;
+};
 </script>
 
 <template>
     <div class="content">
-        <Search :clicked="openModal"/>
+        <Search :clicked="store.openModal" :list="data" :search-keys="columns" @updateFilteredList="store.handleFilteredListUpdate"/>
 
         <!-- Add Client Modal -->
-        <div v-show="showModal" id="add-client-modal" class="modal">
+        <div v-show="store.showModal" id="add-client-modal" class="modal">
             <div class="modal-content">
-                <span class="close-modal" @click="closeModal">&times;</span>
+                <span class="close-modal" @click="store.closeModal">&times;</span>
                 <h3>Add New Client</h3>
                 <form id="add-client-form" @submit.prevent="handleSubmit">
                     <!-- PPPoE Username -->
@@ -147,6 +153,7 @@ const rows = computed(() => {
                 </form>
             </div>
         </div>
-        <Table title="Client Details" :columns="columns" :rows="rows"></Table>
+        <CustomLoader v-if="store.isLoading" />
+        <Table title="Client Details" :columns="columns" :rows="rows" v-else></Table>
     </div>
 </template>
