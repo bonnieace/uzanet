@@ -11,7 +11,7 @@ const data=ref([])
 onMounted(async () => {
     store.setLoading(true);
     try {
-        const res = await axios.get('https://uzanet.duckdns.org/logs');
+        const res = await axios.get('https://wifi.swahilipro.com/logs');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 

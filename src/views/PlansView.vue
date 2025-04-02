@@ -22,7 +22,7 @@ onMounted(async () => {
     console.log(store.showModal.value);
     store.setLoading(true); // Start loading
     try {
-        const res = await axios.get('https://uzanet.duckdns.org/packages');
+        const res = await axios.get('https://wifi.swahilipro.com/packages');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 
@@ -62,7 +62,7 @@ const handleSubmit = async () => {
         console.log(queryString);
 
         // Make the request
-        const response = await axios.post(`https://uzanet.duckdns.org/package?${queryString}`, null, {
+        const response = await axios.post(`https://wifi.swahilipro.com/package?${queryString}`, null, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -71,7 +71,7 @@ const handleSubmit = async () => {
         console.log('✅ plan added successfully:', response.data);
 
         // Refresh data after successful submission
-        const res = await axios.get('https://uzanet.duckdns.org/packages');
+        const res = await axios.get('https://wifi.swahilipro.com/packages');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 

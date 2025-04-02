@@ -12,9 +12,9 @@ const data=ref([])
 
 onMounted(async () => {
     try {
-        const res = await axios.get('https://uzanet.duckdns.org/logs');
+        const res = await axios.get('https://wifi.swahilipro.com/logs');
         data.value = res.data;
-        const res2=await axios.get('https://uzanet.duckdns.org/payments')
+        const res2=await axios.get('https://wifi.swahilipro.com/payments')
         payments.value=res2.data
         console.log(payments.value);
         

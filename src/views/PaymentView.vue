@@ -13,7 +13,7 @@ const data=ref([])
 onMounted(async() => {
     store.setLoading(true);
    try {
-    const res=await axios.get('https://uzanet.duckdns.org/payments')
+    const res=await axios.get('https://wifi.swahilipro.com/payments')
     data.value=res.data
     console.log(data.value)
     

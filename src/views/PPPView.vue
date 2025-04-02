@@ -21,7 +21,7 @@ async function addClient(clientData) {
         console.log(queryString);
         
         // Make the request
-        const response = await axios.post(`https://uzanet.duckdns.org/ppp_user?${queryString}`, null, {
+        const response = await axios.post(`https://wifi.swahilipro.com/ppp_user?${queryString}`, null, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -48,7 +48,7 @@ const handleSubmit = async (event) => {
         store.closeModal();
         
         // Refresh client list
-        const res = await axios.get('https://uzanet.duckdns.org/ppp_users');
+        const res = await axios.get('https://wifi.swahilipro.com/ppp_users');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 
@@ -61,7 +61,7 @@ const handleSubmit = async (event) => {
 onMounted(async () => {
     store.setLoading(true);
     try {
-        const res = await axios.get('https://uzanet.duckdns.org/ppp_users');
+        const res = await axios.get('https://wifi.swahilipro.com/ppp_users');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 
