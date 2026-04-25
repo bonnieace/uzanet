@@ -18,7 +18,7 @@ onMounted(async () => {
     try {
         
 
-        const res = await axios.get('https://wifi.swahilipro.com/hotspot_users');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
         
@@ -45,14 +45,14 @@ const handleSubmit = async () => {
     try {
 
         const queryString = new URLSearchParams(clientData.value).toString();
-        const response = await axios.post(`https://wifi.swahilipro.com/hotspot_user?${queryString}`, null, {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/hotspot_user?${queryString}`, null, {
             headers: { 'Accept': 'application/json' }
         });
 
         console.log('✅ Client added successfully:', response.data);
 
         // Refresh data after successful submission
-        const res = await axios.get('https://wifi.swahilipro.com/hotspot_users');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
         data.value = res.data;
         store.filteredData = res.data;
 
