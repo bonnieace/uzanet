@@ -22,12 +22,11 @@ onMounted(async () => {
     console.log(store.showModal.value);
     store.setLoading(true); // Start loading
     try {
-        const res = await axios.get('https://wifi.swahilipro.com/packages');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 
         console.log(data.value);
-    } catch (error) {
         console.error('Error fetching hotspot users:', error);
     }finally{
         store.setLoading(false); // Stop loading
@@ -62,7 +61,7 @@ const handleSubmit = async () => {
         console.log(queryString);
 
         // Make the request
-        const response = await axios.post(`https://wifi.swahilipro.com/package?${queryString}`, null, {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/package?${queryString}`, null, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -71,7 +70,7 @@ const handleSubmit = async () => {
         console.log('✅ plan added successfully:', response.data);
 
         // Refresh data after successful submission
-        const res = await axios.get('https://wifi.swahilipro.com/packages');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 

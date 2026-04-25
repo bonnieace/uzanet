@@ -13,7 +13,7 @@ const data=ref([])
 onMounted(async() => {
     store.setLoading(true);
    try {
-    const res=await axios.get('https://wifi.swahilipro.com/payments')
+    const res=await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payments`)
     data.value=res.data
     console.log(data.value)
     
