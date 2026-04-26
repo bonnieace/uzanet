@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
+import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, ArrowUp, ArrowDown } from 'lucide-vue-next';
 
 const route = useRoute();
-console.log(route.name);
 
 const theme = ref(localStorage.getItem('theme') || 'light');
 const mobileMenuActive = ref(false);
@@ -14,15 +14,12 @@ const toggleTheme = () => {
     localStorage.setItem('theme', theme.value);
 };
 
-// Modified closeMobileMenu function that works both with and without an event
 const closeMobileMenu = (event = null) => {
     if (event) {
-        // Only check for outside clicks when called from document event listener
         if (!event.target.closest('.mobile-menu-toggle') && !event.target.closest('.mobile-dropdown')) {
             mobileMenuActive.value = false;
         }
     } else {
-        // Directly close the menu when called from navigation links
         mobileMenuActive.value = false;
     }
 };
@@ -41,41 +38,153 @@ onUnmounted(() => {
     document.removeEventListener('click', closeMobileMenu);
 });
 
-// Add route watcher to close menu on navigation
 watch(() => route.path, () => {
     mobileMenuActive.value = false;
 });
 </script>
 
 <template>
-    <header>
+    <header class="neo-header">
         <div class="header-left">
-            <div class="mobile-menu-toggle " @click="toggleMobileMenu">
-                <i class="fas fa-bars"></i>
-            </div>
+            <button class="neo-btn neo-btn-outline mobile-menu-toggle" @click="toggleMobileMenu">
+                <Menu :size="20" />
+            </button>
             <h2>{{ route.name }}</h2>
         </div>
-        <div class="mobile-dropdown" :class="{ active: mobileMenuActive }">
-            <nav>
+        <div class="mobile-dropdown neo-dropdown" :class="{ active: mobileMenuActive }">
+            <nav class="neo-nav">
                 <ul>
-                    <li><RouterLink to="/" :class="{ active: route.path === '/' }" @click="closeMobileMenu()"><i class="fas fa-home"></i> <span>Dashboard</span></RouterLink></li>
-                    <li><RouterLink to="clients" :class="{ active: route.path === '/clients' }" @click="closeMobileMenu()"><i class="fas fa-users"></i> <span>PPPoE</span></RouterLink></li>
-                    <li><RouterLink to="hotspot" :class="{ active: route.path === '/hotspot' }" @click="closeMobileMenu()"><i class="fas fa-wifi"></i> <span>Hotspot</span></RouterLink></li>
-                    <li><RouterLink to="plans" :class="{ active: route.path === '/plans' }" @click="closeMobileMenu()"><i class="fas fa-list-alt"></i> <span>Plans</span></RouterLink></li>
-                    <li><RouterLink to="logs" :class="{ active: route.path === '/logs' }" @click="closeMobileMenu()"><i class="fas fa-chart-bar"></i> <span>Logs</span></RouterLink></li>
-                    <li><RouterLink to="payments" :class="{ active: route.path === '/payments' }" @click="closeMobileMenu()"><i class="fas fa-credit-card"></i> <span>Payments</span></RouterLink></li>
-                    <li><RouterLink to="settings" :class="{ active: route.path === '/settings' }" @click="closeMobileMenu()"><i class="fas fa-cog"></i> <span>Settings</span></RouterLink></li>
+                    <li><RouterLink to="/" :class="{ active: route.path === '/' }" @click="closeMobileMenu()" class="neo-nav-link"><House :size="16" /> <span>Dashboard</span></RouterLink></li>
+                    <li><RouterLink to="clients" :class="{ active: route.path === '/clients' }" @click="closeMobileMenu()" class="neo-nav-link"><Users :size="16" /> <span>PPPoE</span></RouterLink></li>
+                    <li><RouterLink to="hotspot" :class="{ active: route.path === '/hotspot' }" @click="closeMobileMenu()" class="neo-nav-link"><Wifi :size="16" /> <span>Hotspot</span></RouterLink></li>
+                    <li><RouterLink to="plans" :class="{ active: route.path === '/plans' }" @click="closeMobileMenu()" class="neo-nav-link"><ClipboardList :size="16" /> <span>Plans</span></RouterLink></li>
+                    <li><RouterLink to="logs" :class="{ active: route.path === '/logs' }" @click="closeMobileMenu()" class="neo-nav-link"><BarChart2 :size="16" /> <span>Logs</span></RouterLink></li>
+                    <li><RouterLink to="payments" :class="{ active: route.path === '/payments' }" @click="closeMobileMenu()" class="neo-nav-link"><CreditCard :size="16" /> <span>Payments</span></RouterLink></li>
+                    <li><RouterLink to="settings" :class="{ active: route.path === '/settings' }" @click="closeMobileMenu()" class="neo-nav-link"><Settings :size="16" /> <span>Settings</span></RouterLink></li>
                 </ul>
             </nav>
         </div>
         <div class="header-right">
-            <!--   <div class="theme-toggle" @click="toggleTheme">
-                <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'"></i>
-            </div>-->
+            <button class="neo-btn neo-btn-outline theme-button" @click="toggleTheme">
+                <Sun v-if="theme === 'dark'" :size="20" />
+                <Moon v-else :size="20" />
+            </button>
             <div class="user-profile">
-                <i class="fas fa-user-circle"></i>
-                <span> Admin</span>
+                <span class="neo-badge neo-badge-primary">
+                    <CircleUser :size="16" /> Admin
+                </span>
             </div>
         </div>
     </header>
 </template>
+
+<style scoped>
+.neo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    height: 72px;
+    background-color: var(--card-background);
+    border: var(--border-width) solid var(--border);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-left h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.mobile-menu-toggle {
+    display: none;
+}
+
+.neo-dropdown {
+    display: none;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background-color: var(--sidebar-background);
+    z-index: 999;
+    padding: 1rem;
+    border: 3px solid currentColor;
+    box-shadow: 6px 6px 0px 0px currentColor;
+}
+
+.neo-dropdown.active {
+    display: block;
+}
+
+.neo-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.neo-nav-link {
+    color: var(--foreground);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: var(--border-width) solid var(--border);
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.1s ease;
+}
+
+.neo-nav-link:hover,
+.neo-nav-link.active {
+    background-color: var(--border);
+    color: var(--card);
+    box-shadow: 2px 2px 0px 0px var(--border);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.theme-button {
+    font-size: 1.25rem;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .neo-header {
+        width: calc(100% - 8px);
+        padding: 1rem;
+    }
+}
+</style>

@@ -4,6 +4,7 @@ import { ref, computed } from 'vue';
 export const useMainStore = defineStore('main', () => {
     const showModal = ref(false);
     const isLoading= ref(true);
+    const sidebarExpanded = ref(true);
     const filteredData = ref([]); // Holds the filtered data
     const setLoading = (value) => {
         console.log('loading status:', value);
@@ -26,6 +27,7 @@ export const useMainStore = defineStore('main', () => {
     return {
         showModal,
         isLoading,
+        sidebarExpanded,
         filteredData,
         handleFilteredListUpdate,
         setLoading,

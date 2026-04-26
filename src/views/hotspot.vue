@@ -1,117 +1,82 @@
-<script setup>
+﻿<script setup>
 import axios from 'axios';
 import { onMounted, ref, computed } from 'vue';
 import Table from '@/components/Table.vue';
+import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
-import search from '@/components/search.vue';
-import customLoader from '@/components/customLoader.vue';
+import Search from '@/components/search.vue';
+import CustomLoader from '@/components/customLoader.vue';
+
 const store = useMainStore();
 const data = ref([]);
-
-// Default client data structure
-const defaultClientData = { otp: '', phone_number: '', amount: '' };
-const clientData = ref({ ...defaultClientData });
+const clientData = ref({ otp: '', phone_number: '', amount: '' });
 
 onMounted(async () => {
-    store.setLoading(true); // Start loading
-
+    store.setLoading(true);
     try {
-        
-
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
-        data.value = res.data;
-        store.filteredData = res.data; // Initialize filtered data
-        
-
-    } catch (error) {
-        console.error('Error fetching hotspot users:', error);
-    }finally {
-        store.setLoading(false); // Stop loading
-    }
-});
-// Dynamically extract table columns from the data
-const columns = computed(() => data.value.length ? Object.keys(data.value[0]) : []);
-
-// Use filtered data from the store
-const rows = computed(() => store.filteredData);
-
-// Handle updates from Search component
-const handleFilteredListUpdate = (updatedList) => {
-    store.filteredData = updatedList;
-};
-
-// Submit form data
-const handleSubmit = async () => {
-    try {
-
-        const queryString = new URLSearchParams(clientData.value).toString();
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/hotspot_user?${queryString}`, null, {
-            headers: { 'Accept': 'application/json' }
-        });
-
-        console.log('✅ Client added successfully:', response.data);
-
-        // Refresh data after successful submission
         const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
         data.value = res.data;
         store.filteredData = res.data;
-
-        store.closeModal();
-        clientData.value = { ...defaultClientData }; // Reset form
     } catch (error) {
-        console.error('❌ Error adding client:', error.response?.data || error.message);
+        console.error('Error fetching hotspot users:', error);
     } finally {
-        store.setLoading(false); // Stop loading
+        store.setLoading(false);
+    }
+});
+
+const columns = computed(() => data.value.length ? Object.keys(data.value[0]) : []);
+const rows = computed(() => store.filteredData);
+const handleFilteredListUpdate = (list) => { store.filteredData = list; };
+
+const handleSubmit = async () => {
+    try {
+        const q = new URLSearchParams(clientData.value).toString();
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/hotspot_user?${q}`, null, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
+        data.value = res.data;
+        store.filteredData = res.data;
+        store.closeModal();
+        clientData.value = { otp: '', phone_number: '', amount: '' };
+    } catch (error) {
+        console.error('Error adding client:', error.response?.data || error.message);
     }
 };
 </script>
 
 <template>
     <div class="content">
-        <search 
-            :clicked="store.openModal" 
-            :list="data" 
-            :search-keys="columns" 
-            @updateFilteredList="handleFilteredListUpdate" 
-        />
+        <Search :clicked="store.openModal" :list="data" :search-keys="columns" @updateFilteredList="handleFilteredListUpdate" />
 
-        <!-- Add Client Modal -->
-        <div  v-show="store.showModal" id="add-client-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal" @click="store.closeModal">&times;</span>
-                <h3>Add New Client</h3>
-                <form @submit.prevent="handleSubmit">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="otp">OTP*</label>
-                            <input type="text" id="otp" v-model="clientData.otp" placeholder="user1234" required>
-                        </div>
+        <Modal :show="store.showModal" @close="store.closeModal">
+            <h3 class="neo-modal-heading">Add Hotspot Client</h3>
+            <form @submit.prevent="handleSubmit">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="otp">OTP*</label>
+                        <input type="text" id="otp" v-model="clientData.otp" placeholder="Enter OTP" required>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="phone_number">Phone Number*</label>
-                            <input type="text" id="phone_number" v-model="clientData.phone_number" placeholder="0712345678" required>
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone_number">Phone*</label>
+                        <input type="text" id="phone_number" v-model="clientData.phone_number" placeholder="0712345678" required>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="amount">Amount*</label>
-                            <input type="text" id="amount" v-model="clientData.amount" placeholder="10,50,300,1000" required>
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">Amount (Ksh)*</label>
+                        <input type="number" id="amount" v-model="clientData.amount" placeholder="50" required>
                     </div>
+                </div>
+                <button type="submit" class="submit-button" :disabled="store.isLoading">
+                    {{ store.isLoading ? 'Adding...' : 'Add Client' }}
+                </button>
+            </form>
+        </Modal>
 
-                    <button type="submit" class="submit-button" :disabled="store.isLoading">
-                        {{ store.isLoading ? 'Adding...' : 'Add Client' }}
-                    </button>
-                </form>
-            </div>
-        </div>
-        <customLoader  v-if="store.isLoading"/>
-
-        <div class="tables" v-else>
-            <Table title="Client details" :columns="columns" :rows="rows" />
-        </div>
+        <CustomLoader v-if="store.isLoading" />
+        <Table v-else title="Hotspot Clients" :columns="columns" :rows="rows" />
     </div>
 </template>

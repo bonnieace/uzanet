@@ -1,41 +1,434 @@
+/* ============================================
+   BOLDKIT OCEAN PRESET — NEUBRUTALISM THEME
+   ============================================ */
+
+:root {
+  /* Ocean Palette */
+  --primary:        hsl(204, 80%, 50%);
+  --primary-hover:  hsl(204, 80%, 40%);
+  --secondary:      hsl(180, 58%, 50%);
+  --accent:         hsl(170, 90%, 45%);
+  --background:     hsl(210, 30%, 97%);
+  --foreground:     hsl(220, 20%, 10%);
+  --card:           hsl(0, 0%, 100%);
+  --card-foreground:hsl(220, 20%, 10%);
+  --muted:          hsl(210, 15%, 88%);
+  --muted-foreground:hsl(215, 10%, 46%);
+  /* Ocean navy — used for borders & shadows in light mode */
+  --border:         hsl(204, 70%, 22%);
+  --border-dark:     hsl(204, 80%, 8%);
+  --destructive:    hsl(0, 84%, 60%);
+  --success:        hsl(142, 70%, 45%);
+  --warning:        hsl(38, 92%, 50%);
+
+  /* BoldKit neubrutalism tokens */
+  --shadow-offset:  4px;
+  --border-width:   3px;
+  --radius:         0px;
+
+  /* Legacy compat */
+  --primary-color:      var(--primary);
+  --background-color:   var(--background);
+  --text-color:         var(--foreground);
+  --card-background:    var(--card);
+  --sidebar-background: var(--card);
+  --sidebar-text:       var(--foreground);
+}
+
+[data-theme="dark"] {
+  --primary:         hsl(204, 80%, 60%);
+  --primary-hover:   hsl(204, 80%, 70%);
+  --secondary:       hsl(180, 58%, 60%);
+  --accent:          hsl(170, 90%, 55%);
+  --background:      hsl(220, 18%, 10%);
+  --foreground:      hsl(210, 20%, 95%);
+  --card:            hsl(220, 18%, 15%);
+  --card-foreground: hsl(210, 20%, 95%);
+  --muted:           hsl(220, 15%, 22%);
+  --muted-foreground:hsl(215, 10%, 60%);
+  /* Near-black — dark dramatic shadows in dark mode */
+  --border:          hsl(220, 15%, 5%);
+  --border-dark:      hsl(220, 15%, 0%);
+  --destructive:     hsl(0, 84%, 60%);
+  --success:         hsl(142, 70%, 50%);
+  --warning:         hsl(38, 92%, 55%);
+
+  --background-color:   var(--background);
+  --text-color:         var(--foreground);
+  --card-background:    var(--card);
+  --sidebar-background: var(--card);
+  --sidebar-text:       var(--foreground);
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
-:root {
-  --primary-color: #36A2EB;
-  --background-color: #f4f7f6;
-  --text-color: #2c3e50;
-  --card-background: #fff;
-  --sidebar-background: #fff; /* White in light mode */
-  --sidebar-text: #2c3e50; /* Dark text in light mode */
+@media (min-width: 769px) {
+  html, body {
+    overflow: hidden;
+    height: 100%;
+  }
 }
-
-[data-theme="dark"] {
-  --primary-color: #36A2EB;
-  --background-color: #2c3e50; /* Dark background for the entire UI */
-  --text-color: #f4f7f6; /* Light text in dark mode */
-  --card-background: #2c3e50; /* Dark card background */
-  --sidebar-background: #2c3e50; /* Dark sidebar background */
-  --sidebar-text: #f4f7f6; /* Light text in dark mode */
-}
+/* ============================================
+   GLOBAL BASE \u2014 Neubrutalism System
+   ============================================ */
 
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* ============================================
+   LAYOUT
+   ============================================ */
 
 .dashboard {
   display: flex;
   min-height: 100vh;
 }
 
-/* Sidebar Styles */
+.main-content {
+  flex: 1;
+  margin-left: 238px;
+  margin-top: 72px;
+  transition: margin-left 0.2s ease;
+  background-color: var(--background);
+  height: calc(100vh - 72px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Neobrutalism scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--background);
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 90px;
+}
+
+.main-content.sidebar-expanded {
+  margin-left: 238px;
+}
+
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border: 2px solid var(--background);
+}
+
+.content {
+  padding: 2rem;
+}
+
+/* ============================================
+   NEO UTILITY CLASSES
+   ============================================ */
+
+.neo-border {
+  border: var(--border-width) solid var(--border);
+}
+
+.neo-shadow {
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+}
+
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px var(--border);
+}
+
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  text-decoration: none;
+  background-color: var(--card);
+  color: var(--foreground);
+  white-space: nowrap;
+  border-radius: var(--radius);
+}
+
+.neo-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px var(--border);
+}
+
+.neo-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--border);
+}
+
+.neo-btn-primary {
+  background-color: var(--primary);
+  color: #fff;
+  border-color: var(--border);
+}
+
+.neo-btn-primary:hover {
+  background-color: var(--primary-hover);
+  color: #fff;
+}
+
+.neo-btn-danger {
+  background-color: var(--destructive);
+  color: #fff;
+  border-color: var(--border);
+}
+
+.neo-btn-success {
+  background-color: var(--success);
+  color: #fff;
+  border-color: var(--border);
+}
+
+.neo-btn-outline {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.neo-card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.neo-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: var(--card);
+  color: var(--foreground);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: box-shadow 0.1s ease;
+}
+
+.neo-input:focus {
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+.neo-input::placeholder {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.neo-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  color: var(--foreground);
+}
+
+.neo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.75px;
+  text-transform: uppercase;
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0px 0px var(--border);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.neo-badge-primary {
+  background-color: var(--primary);
+  color: #fff;
+  border-color: var(--border);
+}
+
+/* ============================================
+   CARDS GRID
+   ============================================ */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* ============================================
+   MODAL HEADING
+   ============================================ */
+
+.neo-modal-heading {
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid var(--border);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  box-shadow: none;
+  padding-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 160px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  margin-bottom: 0.4rem;
+  color: var(--foreground);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: var(--card);
+  color: var(--foreground);
+  border: var(--border-width) solid var(--border);
+  box-shadow: 3px 3px 0px 0px var(--border);
+  border-radius: var(--radius);
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+.form-group input::placeholder {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.submit-button,
+button[type="submit"] {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  margin-top: 1.25rem;
+  font-weight: 800;
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: inherit;
+  background-color: var(--primary);
+  color: #fff;
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.submit-button:hover,
+button[type="submit"]:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px var(--border);
+  background-color: var(--primary-hover);
+}
+
+.submit-button:active,
+button[type="submit"]:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px var(--border);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    margin-top: 72px;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .main-content.sidebar-expanded {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Keep sidebar class for sideview legacy ===== */
 .sidebar {
-  width: 80px;
+  width: 72px;
   background-color: var(--sidebar-background);
   color: var(--sidebar-text);
   padding: 20px;
@@ -229,7 +622,7 @@ header {
 
 /* Content Area Styles */
 .content {
-  padding: 20px;
+  padding: 2rem;
 }
 
 .cards {
@@ -346,56 +739,6 @@ header {
   font-size: 24px;
   cursor: pointer;
   color: var(--text-color);
-}
-
-/* Form Row and Group Styles */
-.form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  flex: 1;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--text-color);
-  font-size: 14px;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: var(--card-background);
-  color: var(--text-color);
-}
-
-.form-group input::placeholder {
-  color: #999;
-}
-
-/* Submit Button */
-.submit-button {
-  width: 100%;
-  padding: 10px;
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 10px;
-}
-
-.submit-button:hover {
-  background-color: #2c3e50;
 }
 
 /* Search and Add Client Section */
