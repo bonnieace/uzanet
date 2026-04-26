@@ -1,7 +1,7 @@
 ﻿<script setup>
 import { ref, onMounted, computed } from 'vue';
 import Table from '@/components/Table.vue';
-import axios from 'axios';
+import api from '@/lib/api';
 import Search from '@/components/search.vue';
 import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
@@ -13,7 +13,7 @@ const data = ref([]);
 async function addClient(clientData) {
     try {
         const queryString = new URLSearchParams(clientData).toString();
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/ppp_user?${queryString}`, null, {
+        const response = await api.post(`/ppp_user?${queryString}`, null, {
             headers: { 'Accept': 'application/json' }
         });
         return response.data;
@@ -30,7 +30,7 @@ const handleSubmit = async (event) => {
         await addClient(clientData);
         event.target.reset();
         store.closeModal();
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/ppp_users`);
+        const res = await api.get('/ppp_users');
         data.value = res.data;
         store.filteredData = res.data;
     } catch (error) {
@@ -41,7 +41,7 @@ const handleSubmit = async (event) => {
 onMounted(async () => {
     store.setLoading(true);
     try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/ppp_users`);
+        const res = await api.get('/ppp_users');
         data.value = res.data;
         store.filteredData = res.data;
     } catch (error) {

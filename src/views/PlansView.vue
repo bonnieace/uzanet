@@ -1,5 +1,5 @@
 ﻿<script setup>
-import axios from 'axios';
+import api from '@/lib/api';
 import { onMounted, ref, computed } from 'vue';
 import Table from '@/components/Table.vue';
 import Search from '@/components/search.vue';
@@ -23,7 +23,7 @@ onMounted(async () => {
     console.log(store.showModal.value);
     store.setLoading(true); // Start loading
     try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
+        const res = await api.get('/packages');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
     }finally{
@@ -59,7 +59,7 @@ const handleSubmit = async () => {
         console.log(queryString);
 
         // Make the request
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/package?${queryString}`, null, {
+        const response = await api.post(`/package?${queryString}`, null, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -68,7 +68,7 @@ const handleSubmit = async () => {
         console.log('âœ… plan added successfully:', response.data);
 
         // Refresh data after successful submission
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
+        const res = await api.get('/packages');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 

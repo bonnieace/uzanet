@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios';
+import api from '@/lib/api';
 import { ref,onMounted,computed } from 'vue';
 import StatCard from '@/components/StatCard.vue';
 import { Wallet, CalendarDays, UserCheck, Wifi } from 'lucide-vue-next';
@@ -13,18 +13,10 @@ const data=ref([])
 
 onMounted(async () => {
     try {
-            const tokenRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/token`, new URLSearchParams({
-            username: import.meta.env.VITE_API_USERNAME,
-            password: import.meta.env.VITE_API_PASSWORD
-        }));
-        const token = tokenRes.data.access_token;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/logs`, config);
+        const res = await api.get('/logs');
         data.value = res.data;
-        const res2 = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payments`, config);
+        const res2 = await api.get('/payments');
         payments.value = res2.data;
-        console.log(payments.value);
     } catch (error) {
         console.log(error);
     }

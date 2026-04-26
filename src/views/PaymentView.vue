@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios';
+import api from '@/lib/api';
 import { ref,onMounted ,computed} from 'vue';
 import Table from '@/components/Table.vue';
 import search from '@/components/search.vue';
@@ -13,7 +13,7 @@ const data=ref([])
 onMounted(async() => {
     store.setLoading(true);
    try {
-    const res=await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payments`)
+    const res = await api.get('/payments')
     data.value=res.data
     console.log(data.value)
     

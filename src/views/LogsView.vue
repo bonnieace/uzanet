@@ -1,6 +1,6 @@
 <script setup>
 import Table from '@/components/Table.vue';
-import axios from 'axios';
+import api from '@/lib/api';
 import { ref,onMounted,computed } from 'vue';
 import { useMainStore } from '@/stores/store';
 import customLoader from '@/components/customLoader.vue';
@@ -11,7 +11,7 @@ const data=ref([])
 onMounted(async () => {
     store.setLoading(true);
     try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/logs`);
+        const res = await api.get('/logs');
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
 

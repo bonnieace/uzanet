@@ -6,13 +6,26 @@ export const useMainStore = defineStore('main', () => {
     const isLoading= ref(true);
     const sidebarExpanded = ref(true);
     const filteredData = ref([]); // Holds the filtered data
+
+    // Auth state — persisted in localStorage
+    const token = ref(localStorage.getItem('auth_token') || null);
+    const isAuthenticated = computed(() => !!token.value);
+
+    const login = (newToken) => {
+        token.value = newToken;
+        localStorage.setItem('auth_token', newToken);
+    };
+
+    const logout = () => {
+        token.value = null;
+        localStorage.removeItem('auth_token');
+    };
+
     const setLoading = (value) => {
-        console.log('loading status:', value);
         isLoading.value = value;
     };
     
     const openModal = () => {
-        console.log('clicked')
         showModal.value = true;
     };
     
@@ -29,6 +42,10 @@ export const useMainStore = defineStore('main', () => {
         isLoading,
         sidebarExpanded,
         filteredData,
+        token,
+        isAuthenticated,
+        login,
+        logout,
         handleFilteredListUpdate,
         setLoading,
         openModal,

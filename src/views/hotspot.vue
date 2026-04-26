@@ -1,5 +1,5 @@
 ﻿<script setup>
-import axios from 'axios';
+import api from '@/lib/api';
 import { onMounted, ref, computed } from 'vue';
 import Table from '@/components/Table.vue';
 import Modal from '@/components/Modal.vue';
@@ -14,7 +14,7 @@ const clientData = ref({ otp: '', phone_number: '', amount: '' });
 onMounted(async () => {
     store.setLoading(true);
     try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
+        const res = await api.get('/hotspot_users');
         data.value = res.data;
         store.filteredData = res.data;
     } catch (error) {
@@ -31,10 +31,10 @@ const handleFilteredListUpdate = (list) => { store.filteredData = list; };
 const handleSubmit = async () => {
     try {
         const q = new URLSearchParams(clientData.value).toString();
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/hotspot_user?${q}`, null, {
+        await api.post(`/hotspot_user?${q}`, null, {
             headers: { 'Accept': 'application/json' }
         });
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hotspot_users`);
+        const res = await api.get('/hotspot_users');
         data.value = res.data;
         store.filteredData = res.data;
         store.closeModal();

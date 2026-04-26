@@ -1,9 +1,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
-import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, ArrowUp, ArrowDown } from 'lucide-vue-next';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut } from 'lucide-vue-next';
+import { useMainStore } from '@/stores/store';
 
 const route = useRoute();
+const router = useRouter();
+const store = useMainStore();
+
+const handleLogout = () => {
+    store.logout();
+    router.push({ name: 'Login' });
+};
 
 const theme = ref(localStorage.getItem('theme') || 'light');
 const mobileMenuActive = ref(false);
@@ -74,6 +82,9 @@ watch(() => route.path, () => {
                     <CircleUser :size="16" /> Admin
                 </span>
             </div>
+            <button class="neo-btn neo-btn-outline" @click="handleLogout" title="Logout">
+                <LogOut :size="18" />
+            </button>
         </div>
     </header>
 </template>
