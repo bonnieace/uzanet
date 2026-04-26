@@ -1,5 +1,4 @@
 <script setup>
-
 const props = defineProps({
     columns: {
         type: Array,
@@ -17,97 +16,95 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="table-container">
-        <div class="tables">
+    <div class="neo-card neo-table-container">
+        <div class="neo-table-wrapper">
             <h3>{{ title }}</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th v-for="column in columns" :key="column">{{ column }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(row, index) in rows" :key="index">
-                        <td v-for="column in columns" :key="column">{{ row[column] }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="neo-table-scroll">
+                <table class="neo-table">
+                    <thead>
+                        <tr>
+                            <th v-for="column in columns" :key="column">{{ column }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(row, index) in rows" :key="index">
+                            <td v-for="column in columns" :key="column">{{ row[column] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </template>
+
 <style scoped>
-.table-container {
+.neo-table-container {
+    border: var(--border-width) solid var(--border) !important;
+    box-shadow: 6px 6px 0px 0px var(--border) !important;
+    padding: 0 !important;
+    margin: 2rem 0;
+    background-color: var(--card) !important;
+    overflow: hidden;
+}
+
+.neo-table-wrapper {
+    padding: 1.5rem;
+}
+
+.neo-table-wrapper h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--foreground);
+    font-weight: 900;
+    font-size: 1.25rem;
+    border-bottom: var(--border-width) solid var(--border);
+    padding-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.neo-table-scroll {
     overflow-x: auto;
-    margin: 20px 0;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
 }
 
-.tables {
-    padding: 20px;
-}
-
-.tables h3 {
-    margin-bottom: 20px;
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 1.2rem;
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 10px;
-}
-
-table {
+.neo-table {
     width: 100%;
-    min-width: 800px;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
 }
 
-table th, table td {
-    padding: 15px;
+.neo-table th,
+.neo-table td {
+    padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid #e9ecef;
-    transition: background-color 0.2s ease;
-}
-
-table th {
-    background-color: #f7f9fc;
-    font-weight: 600;
-    color: #2c3e50;
+    border: var(--border-width) solid var(--border);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-table tr:hover {
-    background-color: #f1f3f5;
+.neo-table th {
+    background-color: var(--border);
+    color: var(--card);
+    font-weight: 900;
 }
 
-/* Alternating row colors for better readability */
-table tr:nth-child(even) {
-    background-color: #f8f9fa;
+.neo-table tr:nth-child(even) {
+    background-color: var(--muted);
 }
 
-/* Responsive adjustments */
+.neo-table tbody tr:hover {
+    background-color: var(--border);
+    color: var(--card);
+}
+
 @media screen and (max-width: 768px) {
-    .table-container {
-        border-radius: 8px;
+    .neo-table-wrapper {
+        padding: 1rem;
     }
 
-    .tables {
-        padding: 10px;
-    }
-    .tables h3 {
-        font-size: 1rem;
-        padding-bottom: 5px;
-    }
-    table th, table td {
-        padding: 10px;
-    }
-    table {
-        min-width: 100%;
+    .neo-table th,
+    .neo-table td {
+        padding: 0.75rem;
+        font-size: 0.875rem;
     }
 }
 </style>

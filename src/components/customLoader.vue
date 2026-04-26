@@ -4,32 +4,32 @@ const store = useMainStore();
 </script>
 
 <template>
-  <div v-if="store.isLoading" class="loading-overlay">
-    <div class="loading-card">
+  <div v-if="store.isLoading" class="neo-loading-overlay">
+    <div class="neo-card neo-loading-card">
       <!-- Brand Icon -->
-      <div class="brand-container">
-        <div class="brand-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="neo-brand-container">
+        <div class="neo-brand-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
       </div>
       
       <!-- Loading Animation -->
-      <div class="dots-container">
-        <div class="dot dot-1"></div>
-        <div class="dot dot-2"></div>
-        <div class="dot dot-3"></div>
+      <div class="neo-dots-container">
+        <div class="neo-dot neo-dot-1"></div>
+        <div class="neo-dot neo-dot-2"></div>
+        <div class="neo-dot neo-dot-3"></div>
       </div>
       
       <!-- Loading Text -->
-      <p class="loading-text">Loading data...</p>
+      <p class="neo-loading-text">LOADING...</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.loading-overlay {
+.neo-loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -39,80 +39,80 @@ const store = useMainStore();
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
-.loading-card {
+.neo-loading-card {
   width: 100%;
   max-width: 320px;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f0f0f0;
+  border: var(--border-width) solid var(--border) !important;
+  box-shadow: 10px 10px 0px 0px var(--border) !important;
+  padding: 2.5rem !important;
+  background-color: var(--card) !important;
+  text-align: center;
 }
 
-.brand-container {
+.neo-brand-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.brand-icon {
-  width: 48px;
-  height: 48px;
-  background-color: #3b82f6;
-  border-radius: 50%;
+.neo-brand-icon {
+  font-weight: 900;
+  color: var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  width: 80px;
+  height: 80px;
+  border: var(--border-width) solid var(--border);
+  box-shadow: 4px 4px 0px 0px var(--border);
 }
 
-.dots-container {
+.neo-dots-container {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   margin-bottom: 1.5rem;
-  gap: 12px;
+  height: 20px;
 }
 
-.dot {
+.neo-dot {
   width: 12px;
   height: 12px;
-  background-color: #3b82f6;
-  border-radius: 50%;
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #000;
+  border: 2px solid #000;
+  animation: neo-bounce 1.4s infinite ease-in-out both;
 }
 
-.dot-2 {
-  animation-delay: 0.2s;
+.neo-dot-1 {
+  animation-delay: -0.32s;
 }
 
-.dot-3 {
-  animation-delay: 0.4s;
+.neo-dot-2 {
+  animation-delay: -0.16s;
 }
 
-.loading-text {
-  text-align: center;
-  color: #4b5563;
-  font-weight: 500;
-  font-size: 1rem;
-  margin: 0;
+.neo-dot-3 {
+  animation-delay: 0s;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+@keyframes neo-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
     transform: scale(1);
   }
-  50% {
-    opacity: 0.5;
-    transform: scale(0.8);
-  }
 }
 
-@media (min-width: 640px) {
-  .loading-card {
-    max-width: 384px;
-  }
+.neo-loading-text {
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: #000;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 </style>

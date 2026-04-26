@@ -1,8 +1,9 @@
-<script setup>
+﻿<script setup>
 import axios from 'axios';
 import { onMounted, ref, computed } from 'vue';
 import Table from '@/components/Table.vue';
 import Search from '@/components/search.vue';
+import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
 import customLoader from '@/components/customLoader.vue';
 
@@ -25,9 +26,6 @@ onMounted(async () => {
         const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
         data.value = res.data;
         store.filteredData = res.data; // Initialize filtered data
-
-        console.log(data.value);
-        console.error('Error fetching hotspot users:', error);
     }finally{
         store.setLoading(false); // Stop loading
     }
@@ -67,7 +65,7 @@ const handleSubmit = async () => {
             }
         });
 
-        console.log('✅ plan added successfully:', response.data);
+        console.log('âœ… plan added successfully:', response.data);
 
         // Refresh data after successful submission
         const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/packages`);
@@ -79,115 +77,60 @@ const handleSubmit = async () => {
         closeModal();
         planData.value = { name: '', description: '', price: '',service_type: '',validity_days: '' };
     } catch (error) {
-        console.error('❌ Error adding plan:', error.response?.data || error.message);
+        console.error('âŒ Error adding plan:', error.response?.data || error.message);
     }
 };
 </script>
 
 <template>
     <div class="content">
-        <search 
-            :clicked="store.openModal" 
-            :list="data" 
-            :search-keys="columns" 
-            @updateFilteredList="handleFilteredListUpdate" 
-            title="plan"
+        <Search
+            :clicked="store.openModal"
+            :list="data"
+            :search-keys="columns"
+            @updateFilteredList="handleFilteredListUpdate"
+            title="Add Plan"
         />
 
-        <!-- Add plan Modal -->
-        <div v-show="store.showModal" id="add-plan-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal" @click="store.closeModal">&times;</span>
-                <h3>Add New plan</h3>
-                <form id="add-plan-form" @submit.prevent="handleSubmit">
-                    <!-- name Field -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="name">name*</label>
-                            <input type="text" id="name" v-model="planData.name" placeholder="user1234" required>
-                        </div>
+        <Modal :show="store.showModal" @close="store.closeModal">
+            <h3 class="neo-modal-heading">Add New Plan</h3>
+            <form @submit.prevent="handleSubmit">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Plan Name*</label>
+                        <input type="text" id="name" v-model="planData.name" placeholder="e.g. Basic" required>
                     </div>
-
-                    <!-- Phone Number -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="description">description*</label>
-                            <input type="text" id="description" v-model="planData.description" placeholder="1 week connection" required>
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="description">Description*</label>
+                        <input type="text" id="description" v-model="planData.description" placeholder="1 week connection" required>
                     </div>
-
-                    <!-- price -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="price">price*</label>
-                            <input type="text" id="price" v-model="planData.price" placeholder="50,300,1000" required>
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price">Price (Ksh)*</label>
+                        <input type="number" id="price" v-model="planData.price" placeholder="300" required>
                     </div>
-
-                    <!-- service type -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="service_type">service_type*</label>
-                            <input type="text" id="service_type" v-model="planData.service_type" placeholder="pppoe or hotspot" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="validity_days">Validity (Days)*</label>
+                        <input type="number" id="validity_days" v-model="planData.validity_days" placeholder="7" required>
                     </div>
-                    <!-- validity_days -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="validity_days">validity_days*</label>
-                            <input type="text" id="validity_days" v-model="planData.validity_days" placeholder="1,7,30" required>
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="service_type">Service Type*</label>
+                        <select id="service_type" v-model="planData.service_type" required>
+                            <option value="pppoe">PPPoE</option>
+                            <option value="hotspot">Hotspot</option>
+                        </select>
                     </div>
+                </div>
+                <button type="submit" class="submit-button">Add Plan</button>
+            </form>
+        </Modal>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="submit-button">Add plan</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Content Area -->
-         <customLoader v-if="store.isLoading" />
-        <div class="tables" v-else>
-            <Table title="plan details" :columns="columns" :rows="rows"></Table>
-        </div>
+        <CustomLoader v-if="store.isLoading" />
+        <Table v-else title="Plans" :columns="columns" :rows="rows" />
     </div>
 </template>
-
-                    <!-- Profile/Plan and PPPoE Password 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="profile">Select Profile/Plan*</label>
-                            <select id="profile" name="profile" required>
-                                <option value="10 Mbps">10 Mbps</option>
-                                <option value="20 Mbps">20 Mbps</option>
-                                <option value="50 Mbps">50 Mbps</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="pppoe-password">PPPoE Password*</label>
-                            <input type="password" id="pppoe-password" name="pppoe-password" placeholder="user1234" required>
-                        </div>
-                    </div>-->
-
-                    <!-- Coordinates and House 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="coordinates">Coordinates (Optional)</label>
-                            <input type="text" id="coordinates" name="coordinates" placeholder="-3.5000,35.4000">
-                        </div>
-                        <div class="form-group">
-                            <label for="house">House (Optional)</label>
-                            <input type="text" id="house" name="house" placeholder="C8">
-                        </div>
-                    </div>-->
-
-                    <!-- Expiry Date 
-                    <div class="form-group">
-                        <label for="expiry">Select Expiry Date (Recommended)</label>
-                        <input type="date" id="expiry" name="expiry" required>
-                    </div>-->
-
-                    <!-- Submit Button -->
-                  
-        <!-- Content Area -->
-       
