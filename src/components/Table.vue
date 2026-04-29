@@ -19,6 +19,8 @@ const props = defineProps({
     <div class="neo-card neo-table-container">
         <div class="neo-table-wrapper">
             <h3>{{ title }}</h3>
+
+            <!-- Desktop table -->
             <div class="neo-table-scroll">
                 <table class="neo-table">
                     <thead>
@@ -32,6 +34,16 @@ const props = defineProps({
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile card list -->
+            <div class="neo-card-list">
+                <div class="neo-row-card" v-for="(row, index) in rows" :key="index">
+                    <div class="neo-row-card__field" v-for="column in columns" :key="column">
+                        <span class="neo-row-card__label">{{ column }}</span>
+                        <span class="neo-row-card__value">{{ row[column] }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -96,15 +108,68 @@ const props = defineProps({
     color: var(--card);
 }
 
+/* Mobile card list — hidden on desktop */
+.neo-card-list {
+    display: none;
+}
+
 @media screen and (max-width: 768px) {
     .neo-table-wrapper {
         padding: 1rem;
     }
 
-    .neo-table th,
-    .neo-table td {
-        padding: 0.75rem;
-        font-size: 0.875rem;
+    /* Hide table, show cards */
+    .neo-table-scroll {
+        display: none;
+    }
+
+    .neo-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .neo-row-card {
+        border: var(--border-width) solid var(--border);
+        box-shadow: 4px 4px 0px 0px var(--border);
+        background-color: var(--card);
+        overflow: hidden;
+    }
+
+    .neo-row-card__field {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        padding: 0.6rem 0.875rem;
+        border-bottom: var(--border-width) solid var(--border);
+    }
+
+    .neo-row-card__field:last-child {
+        border-bottom: none;
+    }
+
+    .neo-row-card__field:nth-child(even) {
+        background-color: var(--muted);
+    }
+
+    .neo-row-card__label {
+        font-size: 0.7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        color: var(--muted-foreground);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .neo-row-card__value {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: right;
+        word-break: break-word;
+        color: var(--foreground);
     }
 }
 </style>

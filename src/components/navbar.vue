@@ -77,11 +77,7 @@ watch(() => route.path, () => {
                 <Sun v-if="theme === 'dark'" :size="20" />
                 <Moon v-else :size="20" />
             </button>
-            <div class="user-profile">
-                <span class="neo-badge neo-badge-primary">
-                    <CircleUser :size="16" /> Admin
-                </span>
-            </div>
+  
             <button class="neo-btn neo-btn-outline" @click="handleLogout" title="Logout">
                 <LogOut :size="18" />
             </button>
@@ -111,7 +107,8 @@ watch(() => route.path, () => {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
+    min-width: 0;
 }
 
 .header-left h2 {
@@ -131,14 +128,14 @@ watch(() => route.path, () => {
 .neo-dropdown {
     display: none;
     position: fixed;
-    top: 80px;
+    top: 72px;
     left: 0;
     right: 0;
     background-color: var(--sidebar-background);
     z-index: 999;
     padding: 1rem;
-    border: 3px solid currentColor;
-    box-shadow: 6px 6px 0px 0px currentColor;
+    border: var(--border-width) solid var(--border);
+    box-shadow: 6px 6px 0px 0px var(--border);
 }
 
 .neo-dropdown.active {
@@ -190,12 +187,34 @@ watch(() => route.path, () => {
 
 @media (max-width: 768px) {
     .mobile-menu-toggle {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    
+
     .neo-header {
-        width: calc(100% - 8px);
-        padding: 1rem;
+        padding: 0 1rem;
+        height: 64px;
+    }
+
+    .header-left h2 {
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+    }
+
+    .header-right {
+        gap: 0.75rem;
+    }
+
+    .neo-dropdown {
+        top: 64px;
+        border: var(--border-width) solid var(--border);
+        box-shadow: 4px 4px 0px 0px var(--border);
+        max-height: calc(100vh - 64px);
+        overflow-y: auto;
     }
 }
 </style>
