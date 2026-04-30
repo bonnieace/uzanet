@@ -63,12 +63,12 @@ watch(() => route.path, () => {
             <nav class="neo-nav">
                 <ul>
                     <li><RouterLink to="/" :class="{ active: route.path === '/' }" @click="closeMobileMenu()" class="neo-nav-link"><House :size="16" /> <span>Dashboard</span></RouterLink></li>
-                    <li><RouterLink to="clients" :class="{ active: route.path === '/clients' }" @click="closeMobileMenu()" class="neo-nav-link"><Users :size="16" /> <span>PPPoE</span></RouterLink></li>
-                    <li><RouterLink to="hotspot" :class="{ active: route.path === '/hotspot' }" @click="closeMobileMenu()" class="neo-nav-link"><Wifi :size="16" /> <span>Hotspot</span></RouterLink></li>
-                    <li><RouterLink to="plans" :class="{ active: route.path === '/plans' }" @click="closeMobileMenu()" class="neo-nav-link"><ClipboardList :size="16" /> <span>Plans</span></RouterLink></li>
-                    <li><RouterLink to="logs" :class="{ active: route.path === '/logs' }" @click="closeMobileMenu()" class="neo-nav-link"><BarChart2 :size="16" /> <span>Logs</span></RouterLink></li>
-                    <li><RouterLink to="payments" :class="{ active: route.path === '/payments' }" @click="closeMobileMenu()" class="neo-nav-link"><CreditCard :size="16" /> <span>Payments</span></RouterLink></li>
-                    <li><RouterLink to="settings" :class="{ active: route.path === '/settings' }" @click="closeMobileMenu()" class="neo-nav-link"><Settings :size="16" /> <span>Settings</span></RouterLink></li>
+                    <li><RouterLink to="/clients" :class="{ active: route.path === '/clients' }" @click="closeMobileMenu()" class="neo-nav-link"><Users :size="16" /> <span>PPPoE</span></RouterLink></li>
+                    <li><RouterLink to="/hotspot" :class="{ active: route.path === '/hotspot' }" @click="closeMobileMenu()" class="neo-nav-link"><Wifi :size="16" /> <span>Hotspot</span></RouterLink></li>
+                    <li><RouterLink to="/plans" :class="{ active: route.path === '/plans' }" @click="closeMobileMenu()" class="neo-nav-link"><ClipboardList :size="16" /> <span>Plans</span></RouterLink></li>
+                    <li><RouterLink to="/logs" :class="{ active: route.path === '/logs' }" @click="closeMobileMenu()" class="neo-nav-link"><BarChart2 :size="16" /> <span>Logs</span></RouterLink></li>
+                    <li><RouterLink to="/payments" :class="{ active: route.path === '/payments' }" @click="closeMobileMenu()" class="neo-nav-link"><CreditCard :size="16" /> <span>Payments</span></RouterLink></li>
+                    <li><RouterLink to="/routers" :class="{ active: route.path === '/routers' }" @click="closeMobileMenu()" class="neo-nav-link"><Settings :size="16" /> <span>Routers</span></RouterLink></li>
                 </ul>
             </nav>
         </div>
@@ -190,6 +190,14 @@ watch(() => route.path, () => {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 2.1rem;
+        height: 2.1rem;
+        padding: 0.25rem;
+    }
+
+    .mobile-menu-toggle :deep(svg) {
+        width: 16px;
+        height: 16px;
     }
 
     .neo-header {
@@ -207,6 +215,17 @@ watch(() => route.path, () => {
 
     .header-right {
         gap: 0.75rem;
+    }
+
+    .header-right .neo-btn {
+        width: 2.1rem;
+        height: 2.1rem;
+        padding: 0.25rem;
+    }
+
+    .header-right .neo-btn :deep(svg) {
+        width: 15px;
+        height: 15px;
     }
 
     .neo-dropdown {

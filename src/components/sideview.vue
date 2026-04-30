@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import { LayoutDashboard, Users, Wifi, Layers, Terminal, CreditCard, Zap, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next';
+import { LayoutDashboard, Users, Wifi, Layers, Terminal, CreditCard, Settings, Zap, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 const route = useRoute();
 const store = useMainStore();
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/plans',    icon: Layers,          label: 'Plans' },
   { to: '/logs',     icon: Terminal,        label: 'Logs' },
   { to: '/payments', icon: CreditCard,      label: 'Payments' },
+  { to: '/routers',  icon: Settings,        label: 'Routers' },
 ];
 </script>
 

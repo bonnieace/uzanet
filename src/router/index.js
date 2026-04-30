@@ -7,6 +7,7 @@ import PlansView from '@/views/PlansView.vue';
 import LogsView from '@/views/LogsView.vue';
 import PaymentView from '@/views/PaymentView.vue';
 import LoginView from '@/views/LoginView.vue';
+import RoutersView from '@/views/RoutersView.vue';
 
 
 const router = createRouter({
@@ -52,6 +53,11 @@ const router = createRouter({
       path:'/payments',
       name:'payments',
       component:PaymentView
+    },
+    {
+      path:'/routers',
+      name:'Routers',
+      component:RoutersView
     }
   ],
 })
