@@ -8,6 +8,7 @@ import LogsView from '@/views/LogsView.vue';
 import PaymentView from '@/views/PaymentView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RoutersView from '@/views/RoutersView.vue';
+import PortalLoginView from '@/views/PortalLoginView.vue';
 
 
 const router = createRouter({
@@ -15,9 +16,15 @@ const router = createRouter({
   routes: [
     {
       path: '/login',
+      name: 'PortalLogin',
+      component: PortalLoginView,
+      meta: { public: true, hideShell: true },
+    },
+    {
+      path: '/admin/login',
       name: 'Login',
       component: LoginView,
-      meta: { public: true },
+      meta: { public: true, hideShell: true },
     },
     {
       path: '/',

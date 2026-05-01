@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Uzanet Hotspot | High-Speed Connectivity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#cbdbf5",
+                        "surface-container": "#e5eeff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary-container": "#dae2fd",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dce9ff",
+                        "on-secondary-fixed": "#131b2e",
+                        "outline-variant": "#c2c6d9",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-tertiary-container": "#fff1ed",
+                        "tertiary-fixed": "#ffdbcf",
+                        "tertiary-fixed-dim": "#ffb59c",
+                        "secondary-fixed": "#dae2fd",
+                        "on-error": "#ffffff",
+                        "tertiary": "#9e3100",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "tertiary-container": "#c84000",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-container": "#f3f3ff",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#565e74",
+                        "primary": "#004cca",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "background": "#f8f9ff",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-surface-variant": "#424656",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-secondary-container": "#5c647a",
+                        "surface-variant": "#d3e4fe",
+                        "on-background": "#0b1c30",
+                        "primary-container": "#0062ff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737687",
+                        "on-primary-fixed": "#00174b",
+                        "inverse-surface": "#213145",
+                        "on-tertiary-fixed": "#390c00",
+                        "surface-tint": "#0053da"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "lg": "24px",
+                        "xl": "40px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "container-max": "480px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Manrope"],
+                        "body-sm": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "display": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-bold": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pricing-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .pricing-card-shadow:active {
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.08);
+            transform: scale(0.98);
+        }
+        .primary-gradient {
+            background: linear-gradient(180deg, #0062ff 0%, #004cca 100%);
+        }
+    </style>
+</head>
+<body class="bg-background font-body-lg text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar Section -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center h-16 px-6 max-w-[480px] mx-auto font-manrope antialiased">
+<div class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-500" data-icon="wifi">wifi</span>
+                Uzanet Hotspot
+            </div>
+<div class="flex gap-4">
+<button class="text-slate-500 dark:text-slate-400 hover:text-blue-700 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-blue-700 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-12 px-6 max-w-[480px] mx-auto w-full">
+<!-- Hero Visual (Contextual) -->
+<div class="mb-xl rounded-xl overflow-hidden relative h-40 flex items-end p-lg">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="A clean, high-resolution digital abstract background featuring soft blue and white glowing waves that represent high-speed internet connectivity and data transmission. The lighting is bright and modern, perfectly aligned with a professional corporate UI aesthetic. The atmosphere is calm, reliable, and technologically sophisticated, using a minimalist color palette of deep sapphire blue and crisp white highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpe5ZiiMxdjtJ83opAfpvmFLoE-ZrlmT9exJpAaq9cPJDjHa8Dr6gxIX3q5n7mhymBlpvgrgpgzq4n-Pf0Jeeolu66Js3dY_LmfvP-XSChr4Q2HVJ8LT3V7ZAxJKyNGYlIB6tWEVSey-sxqVtnDbYGwsfuuABevSCxWC1g5wkCSE671kuHdLEFWkatT45HDv2pLbleqyHSfNgedSmt9o4sbSn2H5_xbbHWixrhcPLyYKiAltQjwQmGVYUoV7JMZKu6_oiTxYoiR7U"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+</div>
+<div class="relative z-10 text-white">
+<h1 class="font-display text-display">Welcome Back</h1>
+<p class="font-body-sm opacity-90">Experience high-velocity browsing.</p>
+</div>
+</div>
+<!-- Section: Payment Options -->
+<section class="mb-xl">
+<div class="flex items-center gap-2 mb-md text-on-surface">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+<h2 class="font-headline-md text-headline-md">Choose option to pay with M-Pesa</h2>
+</div>
+<div class="grid grid-cols-1 gap-sm">
+<!-- Pricing Card: 1 Hour -->
+<button class="flex items-center justify-between p-md bg-white rounded-xl border border-outline-variant/30 pricing-card-shadow transition-all group active:border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</div>
+<div class="text-left">
+<p class="font-label-bold text-secondary uppercase">Lite Access</p>
+<p class="font-headline-md text-on-surface">1 Hour</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-primary font-display text-headline-md">Ksh. 10</p>
+<p class="font-body-sm text-secondary">Instant Activation</p>
+</div>
+</button>
+<!-- Pricing Card: 1 Day -->
+<button class="flex items-center justify-between p-md bg-white rounded-xl border border-outline-variant/30 pricing-card-shadow transition-all active:border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="today">today</span>
+</div>
+<div class="text-left">
+<p class="font-label-bold text-secondary uppercase">Daily Pass</p>
+<p class="font-headline-md text-on-surface">1 Day</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-primary font-display text-headline-md">Ksh. 50</p>
+<p class="font-body-sm text-secondary">Popular Choice</p>
+</div>
+</button>
+<!-- Pricing Card: 3 Days -->
+<button class="flex items-center justify-between p-md bg-white rounded-xl border border-outline-variant/30 pricing-card-shadow transition-all active:border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="date_range">date_range</span>
+</div>
+<div class="text-left">
+<p class="font-label-bold text-secondary uppercase">Weekend Bundle</p>
+<p class="font-headline-md text-on-surface">3 Days</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-primary font-display text-headline-md">Ksh. 150</p>
+<p class="font-body-sm text-secondary">Great Value</p>
+</div>
+</button>
+<!-- Pricing Card: 7 Days -->
+<button class="flex items-center justify-between p-md bg-white rounded-xl border border-outline-variant/30 pricing-card-shadow transition-all active:border-primary">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="calendar_view_week">calendar_view_week</span>
+</div>
+<div class="text-left">
+<p class="font-label-bold text-secondary uppercase">Weekly Pro</p>
+<p class="font-headline-md text-on-surface">7 Days</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-primary font-display text-headline-md">Ksh. 300</p>
+<p class="font-body-sm text-secondary">Heavy User</p>
+</div>
+</button>
+<!-- Pricing Card: 1 Month -->
+<button class="flex items-center justify-between p-md bg-white rounded-xl border border-primary/20 bg-primary-container/5 pricing-card-shadow transition-all active:border-primary ring-1 ring-primary/10">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+</div>
+<div class="text-left">
+<p class="font-label-bold text-primary uppercase">Ultimate</p>
+<p class="font-headline-md text-on-surface">1 Month</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-primary font-display text-headline-md">Ksh. 1000</p>
+<p class="font-body-sm text-primary font-semibold">Best Savings</p>
+</div>
+</button>
+</div>
+</section>
+<!-- Divider -->
+<div class="flex items-center gap-md my-xl opacity-30">
+<div class="h-px bg-outline grow"></div>
+<span class="font-label-bold uppercase text-on-surface">OR</span>
+<div class="h-px bg-outline grow"></div>
+</div>
+<!-- Section: Ticket Login -->
+<section class="bg-white p-lg rounded-xl border border-outline-variant/30 pricing-card-shadow">
+<div class="flex items-center gap-2 mb-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="confirmation_number">confirmation_number</span>
+<h2 class="font-headline-md text-headline-md">Login with ticket</h2>
+</div>
+<form action="#" class="space-y-md">
+<div>
+<label class="block font-label-bold text-on-surface-variant mb-xs" for="username">USERNAME</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline" data-icon="person">person</span>
+<input class="w-full h-12 pl-12 pr-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" id="username" placeholder="Enter ticket number" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-bold text-on-surface-variant mb-xs" for="password">PASSWORD</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline" data-icon="lock">lock</span>
+<input class="w-full h-12 pl-12 pr-md bg-background border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="w-full h-14 primary-gradient text-on-primary rounded-lg font-headline-md flex items-center justify-center gap-sm active:scale-[0.98] transition-transform mt-lg shadow-lg shadow-primary/20" type="submit">
+                    Log In
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<p class="mt-lg text-center font-body-sm text-on-surface-variant">
+                Lost your ticket? <a class="text-primary font-semibold underline" href="#">Recover access</a>
+</p>
+</section>
+</main>
+<!-- Footer Section -->
+<footer class="w-full mt-auto border-t border-slate-100 dark:border-slate-800/50 bg-transparent">
+<div class="max-w-[480px] mx-auto py-12 px-8 flex flex-col items-center gap-4 text-center">
+<div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-md">
+<a class="text-slate-500 hover:text-slate-900 transition-colors text-[12px] font-manrope" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors text-[12px] font-manrope" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors text-[12px] font-manrope" href="#">Contact Support</a>
+</div>
+<p class="text-[12px] font-manrope leading-relaxed text-slate-400 dark:text-slate-500">
+                © 2024 Uzanet Hotspot. Powered by Velocity.
+            </p>
+<div class="flex gap-4 mt-2 opacity-50 grayscale">
+<img alt="M-Pesa Logo" class="h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoobeiGAsRce7RZxzJpfoT-0U_f3_N3ASOr65GwtimXnC5GhZKP45RjA8R4eO9m5mdfAahKRno2FKkhPZlPhMbLy2I2ma1nZpilVg776SaFGfDax266KtnhoL_f-FPa93WzwC5sDNnGjg-shQeL4g2DLhYgtDQukxHSyaJJYJF7xVlnmjZNRvSXOfhjETBqRk2T__7cQbfXzwS0_086lZCpp6WwlTUlOxvacRcPj6QipgES07kS1i4yyIEwcAMVbsUHHpuFgBQhKE"/>
+<img alt="Visa Logo" class="h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCal_2j5Wc4Fe4Wj7PyRR0zsjQ1d1YS32UcPB-lbEv8SIvEZA5ebnmEp05ZVGx2EvMmjkDMlQlX-grQVjsbD-NoYMSxFOYY5iiCp2EDZSa8JXI9_FZxuHAHZAccvm2e2j6JxRlc2yWN8va6sTxvDUWIetbj3Fkmvy2UqqpQxuUiaZOO5_JX-GIv04JYrFKRKHfHbRXBYUI4-Jq25l49hstCOR7KPJj6_Tdn05YY8G6RH-F5OixoKj7oipzzU5VyA1blK49IOocFvwU"/>
+</div>
+</div>
+</footer>
+</body></html>

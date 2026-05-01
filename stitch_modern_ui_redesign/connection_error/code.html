@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Uzanet Hotspot | Connection Failed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#cbdbf5",
+                    "surface-container": "#e5eeff",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "secondary-container": "#dae2fd",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#eff4ff",
+                    "surface-container-high": "#dce9ff",
+                    "on-secondary-fixed": "#131b2e",
+                    "outline-variant": "#c2c6d9",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-tertiary-container": "#fff1ed",
+                    "tertiary-fixed": "#ffdbcf",
+                    "tertiary-fixed-dim": "#ffb59c",
+                    "secondary-fixed": "#dae2fd",
+                    "on-error": "#ffffff",
+                    "tertiary": "#9e3100",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#0b1c30",
+                    "tertiary-container": "#c84000",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-container": "#f3f3ff",
+                    "primary-fixed": "#dbe1ff",
+                    "error": "#ba1a1a",
+                    "on-secondary": "#ffffff",
+                    "secondary": "#565e74",
+                    "primary": "#004cca",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "background": "#f8f9ff",
+                    "surface": "#f8f9ff",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-surface-variant": "#424656",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-secondary-container": "#5c647a",
+                    "surface-variant": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "primary-container": "#0062ff",
+                    "inverse-primary": "#b4c5ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#737687",
+                    "on-primary-fixed": "#00174b",
+                    "inverse-surface": "#213145",
+                    "on-tertiary-fixed": "#390c00",
+                    "surface-tint": "#0053da"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "lg": "24px",
+                    "xl": "40px",
+                    "md": "16px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "container-max": "480px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Inter"],
+                    "label-bold": ["Inter"],
+                    "display": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-bold": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .error-card-shadow {
+            box-shadow: 0px 4px 20px rgba(186, 26, 26, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
+<div class="max-w-[480px] mx-auto flex justify-between items-center h-16 px-6">
+<div class="font-manrope antialiased text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+<span class="text-blue-600">Uzanet Hotspot</span>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<button class="active:scale-95 transition-transform hover:text-blue-700">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="active:scale-95 transition-transform hover:text-blue-700">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="flex-grow flex items-center justify-center px-6 pt-24 pb-12">
+<div class="w-full max-w-[480px] flex flex-col items-center">
+<!-- Hero Image / Visual Representation of Error -->
+<div class="relative w-full mb-xl">
+<div class="aspect-square w-48 mx-auto rounded-full bg-error-container/30 flex items-center justify-center">
+<div class="w-32 h-32 rounded-full bg-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-error text-[64px]" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+</div>
+</div>
+<!-- Error Content Card -->
+<div class="w-full bg-white rounded-xl p-lg error-card-shadow flex flex-col gap-md text-center">
+<h1 class="font-headline-md text-headline-md text-on-surface">Connection Failed</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                    We couldn't process your payment. Please ensure you have sufficient balance and try again.
+                </p>
+<!-- Detail Box -->
+<div class="bg-surface-container-low rounded-lg p-md border border-slate-100 mt-sm">
+<p class="font-label-bold text-label-bold text-outline uppercase mb-xs">Technical Detail</p>
+<p class="font-body-sm text-body-sm text-error font-mono">Error Code: MPESA_INSUFFICIENT_FUNDS</p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full flex flex-col gap-sm mt-xl">
+<button class="w-full h-[52px] bg-gradient-to-b from-primary to-blue-700 text-on-primary font-body-lg font-semibold rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+                    Try Again
+                </button>
+<button class="w-full h-[52px] bg-white border border-outline-variant text-on-surface font-body-lg font-semibold rounded-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-surface-container-low">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+                    Contact Support
+                </button>
+</div>
+<!-- Contextual Helper Link -->
+<div class="mt-lg">
+<a class="text-primary font-label-bold flex items-center gap-1 hover:underline" href="#">
+                    View FAQ
+                    <span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-auto border-t border-slate-100/50">
+<div class="max-w-[480px] mx-auto py-12 px-8 flex flex-col items-center gap-4 text-center">
+<p class="text-[12px] font-manrope leading-relaxed text-slate-400">
+                © 2024 Uzanet Hotspot. Powered by Velocity.
+            </p>
+<div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+<a class="text-[12px] font-manrope text-slate-500 hover:text-slate-900 transition-colors" href="#">Terms of Service</a>
+<a class="text-[12px] font-manrope text-slate-500 hover:text-slate-900 transition-colors" href="#">Privacy Policy</a>
+<a class="text-[12px] font-manrope text-slate-500 hover:text-slate-900 transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>
