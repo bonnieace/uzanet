@@ -1,11 +1,15 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import api from '@/lib/api';
 
 export const useMainStore = defineStore('main', () => {
     const showModal = ref(false);
     const isLoading= ref(true);
     const sidebarExpanded = ref(true);
     const filteredData = ref([]); // Holds the filtered data
+    const routers = ref([]);
+    const routersLoading = ref(false);
+    const routerRefreshKey = ref(0);
 
     // Auth state — persisted in localStorage
     const token = ref(localStorage.getItem('auth_token') || null);
@@ -25,6 +29,34 @@ export const useMainStore = defineStore('main', () => {
         } else {
             localStorage.removeItem('selected_router_id');
         }
+    };
+
+    const loadRouters = async ({ force = false } = {}) => {
+        if (routersLoading.value) return;
+        if (!force && routers.value.length) return;
+
+        routersLoading.value = true;
+        try {
+            const res = await api.get('/routers');
+            routers.value = res.data || [];
+
+            if (!selectedRouterId.value && routers.value.length) {
+                setSelectedRouterId(routers.value[0].id);
+            }
+
+            if (
+                selectedRouterId.value &&
+                !routers.value.some((router) => router.id === selectedRouterId.value)
+            ) {
+                setSelectedRouterId(routers.value[0]?.id ?? null);
+            }
+        } finally {
+            routersLoading.value = false;
+        }
+    };
+
+    const requestRouterRefresh = () => {
+        routerRefreshKey.value += 1;
     };
 
     const login = (newToken) => {
@@ -58,10 +90,15 @@ export const useMainStore = defineStore('main', () => {
         isLoading,
         sidebarExpanded,
         filteredData,
+        routers,
+        routersLoading,
         token,
         isAuthenticated,
         selectedRouterId,
+        routerRefreshKey,
         setSelectedRouterId,
+        loadRouters,
+        requestRouterRefresh,
         login,
         logout,
         handleFilteredListUpdate,

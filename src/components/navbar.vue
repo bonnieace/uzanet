@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut, Activity } from 'lucide-vue-next';
+import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, LogOut, Activity, RefreshCw } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 
 const route = useRoute();
@@ -15,6 +15,15 @@ const handleLogout = () => {
 
 const theme = ref(localStorage.getItem('theme') || 'light');
 const mobileMenuActive = ref(false);
+const selectedRouterId = computed({
+    get: () => store.selectedRouterId,
+    set: (value) => store.setSelectedRouterId(value),
+});
+const showRouterControls = computed(() => ['Home', 'ActiveUsers'].includes(route.name));
+
+const handleHeaderRefresh = () => {
+    store.requestRouterRefresh();
+};
 
 const toggleTheme = () => {
     theme.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -40,6 +49,10 @@ const toggleMobileMenu = (event) => {
 onMounted(() => {
     document.body.setAttribute('data-theme', theme.value);
     document.addEventListener('click', closeMobileMenu);
+
+    if (showRouterControls.value) {
+        store.loadRouters();
+    }
 });
 
 onUnmounted(() => {
@@ -49,6 +62,12 @@ onUnmounted(() => {
 watch(() => route.path, () => {
     mobileMenuActive.value = false;
 });
+
+watch(showRouterControls, (enabled) => {
+    if (enabled) {
+        store.loadRouters();
+    }
+}, { immediate: true });
 </script>
 
 <template>
@@ -74,6 +93,32 @@ watch(() => route.path, () => {
             </nav>
         </div>
         <div class="header-right">
+            <div v-if="showRouterControls" class="header-tools">
+                <select
+                    v-model="selectedRouterId"
+                    class="neo-input header-router-select"
+                    :disabled="store.routersLoading"
+                    aria-label="Select router"
+                >
+                    <option v-if="store.routersLoading" :value="null">Loading routers...</option>
+                    <option v-else-if="!store.routers.length" :value="null">No routers found</option>
+                    <option v-for="routerItem in store.routers" :key="routerItem.id" :value="routerItem.id">
+                        {{ routerItem.name || routerItem.ip_address }}
+                    </option>
+                </select>
+
+                <button
+                    class="neo-btn neo-btn-outline header-refresh-button"
+                    :disabled="store.routersLoading || !selectedRouterId"
+                    @click="handleHeaderRefresh"
+                    title="Refresh router data"
+                    aria-label="Refresh router data"
+                >
+                    <RefreshCw :size="18" />
+                    <span class="header-refresh-label">Refresh</span>
+                </button>
+            </div>
+
             <button class="neo-btn neo-btn-outline theme-button" @click="toggleTheme">
                 <Sun v-if="theme === 'dark'" :size="20" />
                 <Moon v-else :size="20" />
@@ -176,6 +221,25 @@ watch(() => route.path, () => {
     gap: 1.5rem;
 }
 
+.header-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-router-select {
+    min-width: 190px;
+    max-width: 220px;
+    height: 2.5rem;
+}
+
+.header-refresh-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
 .theme-button {
     font-size: 1.25rem;
 }
@@ -216,6 +280,29 @@ watch(() => route.path, () => {
 
     .header-right {
         gap: 0.75rem;
+    }
+
+    .header-tools {
+        gap: 0.5rem;
+    }
+
+    .header-router-select {
+        min-width: 0;
+        width: 120px;
+        max-width: 120px;
+        padding-right: 1.75rem;
+        font-size: 0.75rem;
+    }
+
+    .header-refresh-button {
+        width: 2.1rem;
+        height: 2.1rem;
+        padding: 0.25rem;
+        justify-content: center;
+    }
+
+    .header-refresh-label {
+        display: none;
     }
 
     .header-right .neo-btn {

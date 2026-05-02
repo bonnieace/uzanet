@@ -15,7 +15,6 @@ const payments=ref([])
 const data=ref([])
 
 // ── Active users (per-router) ────────────────────────────────────
-const routers = ref([]);
 const selectedRouterId = computed({
     get: () => store.selectedRouterId,
     set: (val) => store.setSelectedRouterId(val),
@@ -50,6 +49,12 @@ watch(selectedRouterId, (id) => {
     if (id) loadActiveUsers();
 });
 
+watch(() => store.routerRefreshKey, () => {
+    if (selectedRouterId.value) {
+        loadActiveUsers();
+    }
+});
+
 onMounted(async () => {
     try {
         const res = await api.get('/logs');
@@ -62,12 +67,10 @@ onMounted(async () => {
 
     // Load routers and auto-select if none chosen
     try {
-        const routerRes = await api.get('/routers');
-        routers.value = routerRes.data || [];
-        if (!selectedRouterId.value && routers.value.length) {
-            store.setSelectedRouterId(routers.value[0].id);
+        await store.loadRouters();
+        if (selectedRouterId.value) {
+            loadActiveUsers();
         }
-        loadActiveUsers();
     } catch (e) {
         console.error('Failed to load routers on dashboard:', e);
     }
@@ -182,20 +185,6 @@ const rows = computed(() => {
     <div class="content">
     <CustomLoader v-if="!data.length" />
         <div v-else>
-                <!-- Router selector for active user cards -->
-                <div class="dash-router-bar" v-if="routers.length > 1">
-                    <label class="neo-label" for="dash-router-select">Router</label>
-                    <select
-                        id="dash-router-select"
-                        v-model="selectedRouterId"
-                        class="neo-input dash-router-select"
-                    >
-                        <option v-for="r in routers" :key="r.id" :value="r.id">
-                            {{ r.name || r.ip_address }}
-                        </option>
-                    </select>
-                </div>
-
                 <!-- Stat Cards -->
                 <div class="cards">
                     <StatCard
@@ -269,15 +258,4 @@ const rows = computed(() => {
 </template>
 
 <style scoped>
-.dash-router-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.dash-router-select {
-    max-width: 220px;
-}
 </style>

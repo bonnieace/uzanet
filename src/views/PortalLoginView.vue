@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -19,7 +19,6 @@ const paymentError = ref('');
 
 const ticketUsername = ref('');
 const ticketPassword = ref('');
-const loginFormRef = ref(null);
 
 const mac = computed(() => String(route.query.mac || ''));
 const ip = computed(() => String(route.query.ip || ''));
@@ -61,11 +60,17 @@ const normalizePhoneNumber = (value) => {
     throw new Error("Please enter a valid phone number starting with 0 or 254.");
 };
 
-const submitPortalLogin = async () => {
-    if (!loginFormRef.value) return;
+const submitPortalLogin = () => {
+    if (!canSubmitLogin.value) return;
 
-    await nextTick();
-    loginFormRef.value.submit();
+    const params = new URLSearchParams({
+        username: ticketUsername.value,
+        password: ticketPassword.value,
+        dst: linkOrig.value,
+        popup: 'true',
+    });
+
+    window.location.href = `${linkLogin.value}?${params.toString()}`;
 };
 
 const submitPayment = async () => {
@@ -113,7 +118,7 @@ const submitPayment = async () => {
         ticketPassword.value = data.credentials.password;
 
         closePlanPopup();
-        await submitPortalLogin();
+        submitPortalLogin();
     } catch (err) {
         paymentError.value = err.message || 'Unable to complete payment. Please try again.';
         submittingPayment.value = false;
@@ -245,7 +250,7 @@ const submitPayment = async () => {
                             Missing required query parameter: link-login.
                         </p>
 
-                        <form ref="loginFormRef" :action="linkLogin" method="post" class="ticket-form">
+                        <form @submit.prevent="submitPortalLogin" class="ticket-form">
                             <div class="form-group">
                                 <label for="portal-username" class="form-label">USERNAME</label>
                                 <div class="input-wrap">
@@ -276,8 +281,7 @@ const submitPayment = async () => {
                                     />
                                 </div>
                             </div>
-                            <input type="hidden" name="dst" :value="linkOrig" />
-                            <input type="hidden" name="popup" value="true" />
+
                             <button type="submit" class="login-btn" :disabled="!canSubmitLogin">
                                 Log In
                                 <span class="material-symbols-outlined">arrow_forward</span>

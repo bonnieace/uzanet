@@ -517,18 +517,14 @@ watch(
 }
 
 .neo-data-table th {
-    background-color: var(--border);
-    color: var(--card);
+    background-color: var(--muted);
+    color: var(--foreground);
     font-weight: 900;
 }
 
-.neo-data-table tbody tr:nth-child(even) {
-    background-color: var(--muted);
-}
-
 .neo-data-table tbody tr:hover {
-    background-color: var(--border);
-    color: var(--card);
+    background-color: var(--muted);
+    color: var(--foreground);
 }
 
 .neo-data-table__select-cell {

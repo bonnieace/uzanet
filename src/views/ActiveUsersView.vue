@@ -1,36 +1,16 @@
 <script setup>
-import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
+import { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
 import { ref, computed, onMounted, watch } from 'vue';
-import { RefreshCw, Wifi, Users } from 'lucide-vue-next';
+import { Wifi, Users } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 import CustomLoader from '@/components/customLoader.vue';
 
 const store = useMainStore();
 
-// ── Router selection ─────────────────────────────────────────────
-const routers = ref([]);
-const routersLoading = ref(false);
-
 const selectedRouterId = computed({
     get: () => store.selectedRouterId,
     set: (val) => store.setSelectedRouterId(val),
 });
-
-const loadRouters = async () => {
-    routersLoading.value = true;
-    try {
-        const res = await api.get('/routers');
-        routers.value = res.data || [];
-        // Auto-select first router if none chosen yet
-        if (!selectedRouterId.value && routers.value.length) {
-            store.setSelectedRouterId(routers.value[0].id);
-        }
-    } catch (e) {
-        console.error('Failed to load routers:', e);
-    } finally {
-        routersLoading.value = false;
-    }
-};
 
 // ── Tabs ─────────────────────────────────────────────────────────
 const activeTab = ref('hotspot'); // 'hotspot' | 'pppoe'
@@ -41,6 +21,7 @@ const pppoeData = ref(null);
 
 const hotspotLoading = ref(false);
 const pppoeLoading = ref(false);
+const initialLoading = ref(true);
 
 const hotspotError = ref('');
 const pppoeError = ref('');
@@ -71,9 +52,8 @@ const loadPppoe = async () => {
     }
 };
 
-const refresh = () => {
-    loadHotspot();
-    loadPppoe();
+const refresh = async () => {
+    await Promise.all([loadHotspot(), loadPppoe()]);
 };
 
 // Reload whenever the selected router changes
@@ -81,9 +61,22 @@ watch(selectedRouterId, (id) => {
     if (id) refresh();
 });
 
+watch(() => store.routerRefreshKey, () => {
+    if (selectedRouterId.value) {
+        refresh();
+    }
+});
+
 onMounted(async () => {
-    await loadRouters();
-    refresh();
+    initialLoading.value = true;
+    try {
+        await store.loadRouters();
+        if (selectedRouterId.value) {
+            await refresh();
+        }
+    } finally {
+        initialLoading.value = false;
+    }
 });
 
 // ── Computed helpers ─────────────────────────────────────────────
@@ -105,36 +98,9 @@ const formatDate = (iso) => {
 
 <template>
     <div class="content">
-        <!-- Router selector + refresh bar -->
-        <div class="au-toolbar">
-            <div class="au-selector-wrap">
-                <label class="neo-label" for="router-select">Router</label>
-                <select
-                    id="router-select"
-                    v-model="selectedRouterId"
-                    class="neo-input au-select"
-                    :disabled="routersLoading"
-                >
-                    <option v-if="routersLoading" :value="null">Loading…</option>
-                    <option v-else-if="!routers.length" :value="null">No routers found</option>
-                    <option
-                        v-for="r in routers"
-                        :key="r.id"
-                        :value="r.id"
-                    >{{ r.name || r.ip_address }}</option>
-                </select>
-            </div>
+        <CustomLoader v-if="initialLoading" :show="initialLoading" />
 
-            <button
-                class="neo-btn neo-btn-primary au-refresh-btn"
-                :disabled="hotspotLoading || pppoeLoading || !selectedRouterId"
-                @click="refresh"
-            >
-                <RefreshCw :size="16" :class="{ 'spin': hotspotLoading || pppoeLoading }" />
-                Refresh
-            </button>
-        </div>
-
+        <template v-else>
         <!-- Tabs -->
         <div class="au-tabs">
             <button
@@ -162,7 +128,7 @@ const formatDate = (iso) => {
                 </span>
             </div>
 
-            <CustomLoader v-if="hotspotLoading" />
+            <CustomLoader v-if="hotspotLoading" :show="hotspotLoading" />
 
             <div v-else-if="hotspotError" class="au-error">
                 {{ hotspotError }}
@@ -201,7 +167,7 @@ const formatDate = (iso) => {
                 </span>
             </div>
 
-            <CustomLoader v-if="pppoeLoading" />
+            <CustomLoader v-if="pppoeLoading" :show="pppoeLoading" />
 
             <div v-else-if="pppoeError" class="au-error">
                 {{ pppoeError }}
@@ -230,34 +196,11 @@ const formatDate = (iso) => {
                 </table>
             </div>
         </div>
+        </template>
     </div>
 </template>
 
 <style scoped>
-/* ── Toolbar ── */
-.au-toolbar {
-    display: flex;
-    align-items: flex-end;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.au-selector-wrap {
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-}
-
-.au-select {
-    min-width: 200px;
-}
-
-.au-refresh-btn {
-    height: 2.5rem;
-    align-self: flex-end;
-}
-
 /* ── Tabs ── */
 .au-tabs {
     display: flex;

@@ -1,10 +1,20 @@
 <script setup>
+import { computed } from 'vue';
 import { useMainStore } from '@/stores/store';
+
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: undefined
+  }
+});
+
 const store = useMainStore();
+const shouldShow = computed(() => props.show ?? store.isLoading);
 </script>
 
 <template>
-  <div v-if="store.isLoading" class="neo-loading-overlay">
+  <div v-if="shouldShow" class="neo-loading-overlay">
     <div class="neo-card neo-loading-card">
       <!-- Brand Icon -->
       <div class="neo-brand-container">
