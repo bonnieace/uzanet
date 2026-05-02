@@ -1,36 +1,13 @@
 <script setup>
-import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
+import { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
 import { ref, computed, onMounted, watch } from 'vue';
-import { RefreshCw, Wifi, Users } from 'lucide-vue-next';
+import { Wifi, Users } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 import CustomLoader from '@/components/customLoader.vue';
 
 const store = useMainStore();
 
-// ── Router selection ─────────────────────────────────────────────
-const routers = ref([]);
-const routersLoading = ref(false);
-
-const selectedRouterId = computed({
-    get: () => store.selectedRouterId,
-    set: (val) => store.setSelectedRouterId(val),
-});
-
-const loadRouters = async () => {
-    routersLoading.value = true;
-    try {
-        const res = await api.get('/routers');
-        routers.value = res.data || [];
-        // Auto-select first router if none chosen yet
-        if (!selectedRouterId.value && routers.value.length) {
-            store.setSelectedRouterId(routers.value[0].id);
-        }
-    } catch (e) {
-        console.error('Failed to load routers:', e);
-    } finally {
-        routersLoading.value = false;
-    }
-};
+const selectedRouterId = computed(() => store.selectedRouterId);
 
 // ── Tabs ─────────────────────────────────────────────────────────
 const activeTab = ref('hotspot'); // 'hotspot' | 'pppoe'
@@ -81,9 +58,13 @@ watch(selectedRouterId, (id) => {
     if (id) refresh();
 });
 
-onMounted(async () => {
-    await loadRouters();
+// Reload when the navbar refresh button is triggered
+watch(() => store.refreshCount, () => {
     refresh();
+});
+
+onMounted(() => {
+    if (selectedRouterId.value) refresh();
 });
 
 // ── Computed helpers ─────────────────────────────────────────────
@@ -105,36 +86,6 @@ const formatDate = (iso) => {
 
 <template>
     <div class="content">
-        <!-- Router selector + refresh bar -->
-        <div class="au-toolbar">
-            <div class="au-selector-wrap">
-                <label class="neo-label" for="router-select">Router</label>
-                <select
-                    id="router-select"
-                    v-model="selectedRouterId"
-                    class="neo-input au-select"
-                    :disabled="routersLoading"
-                >
-                    <option v-if="routersLoading" :value="null">Loading…</option>
-                    <option v-else-if="!routers.length" :value="null">No routers found</option>
-                    <option
-                        v-for="r in routers"
-                        :key="r.id"
-                        :value="r.id"
-                    >{{ r.name || r.ip_address }}</option>
-                </select>
-            </div>
-
-            <button
-                class="neo-btn neo-btn-primary au-refresh-btn"
-                :disabled="hotspotLoading || pppoeLoading || !selectedRouterId"
-                @click="refresh"
-            >
-                <RefreshCw :size="16" :class="{ 'spin': hotspotLoading || pppoeLoading }" />
-                Refresh
-            </button>
-        </div>
-
         <!-- Tabs -->
         <div class="au-tabs">
             <button
@@ -234,30 +185,6 @@ const formatDate = (iso) => {
 </template>
 
 <style scoped>
-/* ── Toolbar ── */
-.au-toolbar {
-    display: flex;
-    align-items: flex-end;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.au-selector-wrap {
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-}
-
-.au-select {
-    min-width: 200px;
-}
-
-.au-refresh-btn {
-    height: 2.5rem;
-    align-self: flex-end;
-}
-
 /* ── Tabs ── */
 .au-tabs {
     display: flex;

@@ -1,12 +1,44 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut, Activity } from 'lucide-vue-next';
+import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut, Activity, RefreshCw } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
+import api from '@/lib/api';
 
 const route = useRoute();
 const router = useRouter();
 const store = useMainStore();
+
+// ── Router selector ──────────────────────────────────────────────
+const routers = ref([]);
+const routersLoading = ref(false);
+
+const selectedRouterId = ref(store.selectedRouterId);
+
+// Keep local ref in sync with store (e.g. when a view auto-selects)
+watch(() => store.selectedRouterId, (id) => {
+    selectedRouterId.value = id;
+});
+
+// When user picks a router in the header, persist to store
+watch(selectedRouterId, (id) => {
+    store.setSelectedRouterId(id);
+});
+
+const loadRouters = async () => {
+    routersLoading.value = true;
+    try {
+        const res = await api.get('/routers');
+        routers.value = res.data || [];
+        if (!store.selectedRouterId && routers.value.length) {
+            store.setSelectedRouterId(routers.value[0].id);
+        }
+    } catch (e) {
+        console.error('Failed to load routers:', e);
+    } finally {
+        routersLoading.value = false;
+    }
+};
 
 const handleLogout = () => {
     store.logout();
@@ -40,6 +72,9 @@ const toggleMobileMenu = (event) => {
 onMounted(() => {
     document.body.setAttribute('data-theme', theme.value);
     document.addEventListener('click', closeMobileMenu);
+    if (store.isAuthenticated) {
+        loadRouters();
+    }
 });
 
 onUnmounted(() => {
@@ -73,7 +108,33 @@ watch(() => route.path, () => {
                 </ul>
             </nav>
         </div>
+        <div class="header-center" v-if="routers.length > 0">
+            <select
+                v-model="selectedRouterId"
+                class="neo-input header-router-select"
+                :disabled="routersLoading"
+            >
+                <option v-if="routersLoading" :value="null">Loading…</option>
+                <option
+                    v-for="r in routers"
+                    :key="r.id"
+                    :value="r.id"
+                >{{ r.name || r.ip_address }}</option>
+            </select>
+        </div>
         <div class="header-right">
+            <button
+                v-if="route.path === '/active-users'"
+                class="neo-btn neo-btn-primary header-refresh-btn"
+                :disabled="!store.selectedRouterId"
+                @click="store.triggerRefresh()"
+                title="Refresh"
+                aria-label="Refresh"
+            >
+                <RefreshCw :size="16" />
+                <span class="btn-label">Refresh</span>
+            </button>
+
             <button class="neo-btn neo-btn-outline theme-button" @click="toggleTheme">
                 <Sun v-if="theme === 'dark'" :size="20" />
                 <Moon v-else :size="20" />
@@ -176,6 +237,30 @@ watch(() => route.path, () => {
     gap: 1.5rem;
 }
 
+.header-center {
+    display: flex;
+    align-items: center;
+}
+
+.header-router-select {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    height: 2.25rem;
+    padding: 0 0.6rem;
+    min-width: 140px;
+    max-width: 200px;
+}
+
+.header-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    font-size: 0.8rem;
+}
+
 .theme-button {
     font-size: 1.25rem;
 }
@@ -216,6 +301,18 @@ watch(() => route.path, () => {
 
     .header-right {
         gap: 0.75rem;
+    }
+
+    .header-router-select {
+        font-size: 0.7rem;
+        min-width: 100px;
+        max-width: 130px;
+        height: 2rem;
+        padding: 0 0.4rem;
+    }
+
+    .header-refresh-btn .btn-label {
+        display: none;
     }
 
     .header-right .neo-btn {

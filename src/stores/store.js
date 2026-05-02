@@ -18,6 +18,10 @@ export const useMainStore = defineStore('main', () => {
             : null
     );
 
+    // Refresh trigger — incremented by the navbar refresh button
+    const refreshCount = ref(0);
+    const triggerRefresh = () => { refreshCount.value++; };
+
     const setSelectedRouterId = (id) => {
         selectedRouterId.value = id;
         if (id !== null && id !== undefined) {
@@ -62,6 +66,8 @@ export const useMainStore = defineStore('main', () => {
         isAuthenticated,
         selectedRouterId,
         setSelectedRouterId,
+        refreshCount,
+        triggerRefresh,
         login,
         logout,
         handleFilteredListUpdate,
