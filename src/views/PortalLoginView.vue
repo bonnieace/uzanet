@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { Wifi, Zap, Shield, Gauge, CreditCard, Lock, HelpCircle, Globe, Timer, Calendar, CalendarRange, CalendarDays, Star, Ticket, AlertTriangle, User, ArrowRight, X, Smartphone } from 'lucide-vue-next';
 
 const route = useRoute();
 
@@ -11,6 +12,8 @@ const plans = [
     { id: '7d', name: '7 Days',  amount: 300,  label: 'WEEKLY PRO',      sub: 'Heavy User',         icon: 'calendar_view_week', featured: false },
     { id: '1m', name: '1 Month', amount: 1000, label: 'ULTIMATE',        sub: 'Best Savings',       icon: 'star',               featured: true  },
 ];
+
+const planIconMap = { timer: Timer, today: Calendar, date_range: CalendarRange, calendar_view_week: CalendarDays, star: Star };
 
 const selectedPlan = ref(null);
 const phoneNumber = ref('');
@@ -66,7 +69,7 @@ const submitPortalLogin = () => {
     const params = new URLSearchParams({
         username: ticketUsername.value,
         password: ticketPassword.value,
-        dst: linkOrig.value,
+        dst: 'https://uzanet.co.ke',
         popup: 'true',
     });
 
@@ -132,7 +135,7 @@ const submitPayment = async () => {
         <aside class="portal-sidebar">
             <div class="sidebar-content">
                 <div class="sidebar-logo-row">
-                    <span class="material-symbols-outlined sidebar-wifi-icon">wifi</span>
+                    <Wifi :size="32" class="sidebar-wifi-icon" />
                     <span class="sidebar-brand-name">Uzanet Hotspot</span>
                 </div>
                 <h2 class="sidebar-heading">Fast.<br>Reliable.<br>Instant.</h2>
@@ -140,31 +143,31 @@ const submitPayment = async () => {
                 <ul class="sidebar-features">
                     <li class="sidebar-feature">
                         <div class="sidebar-feature-icon-wrap">
-                            <span class="material-symbols-outlined">bolt</span>
+                            <Zap :size="20" />
                         </div>
                         <span>Instant activation</span>
                     </li>
                     <li class="sidebar-feature">
                         <div class="sidebar-feature-icon-wrap">
-                            <span class="material-symbols-outlined">security</span>
+                            <Shield :size="20" />
                         </div>
                         <span>Secure connection</span>
                     </li>
                     <li class="sidebar-feature">
                         <div class="sidebar-feature-icon-wrap">
-                            <span class="material-symbols-outlined">speed</span>
+                            <Gauge :size="20" />
                         </div>
                         <span>High-speed browsing</span>
                     </li>
                     <li class="sidebar-feature">
                         <div class="sidebar-feature-icon-wrap">
-                            <span class="material-symbols-outlined">payments</span>
+                            <CreditCard :size="20" />
                         </div>
                         <span>Easy M-Pesa payment</span>
                     </li>
                 </ul>
                 <div class="sidebar-trust">
-                    <span class="material-symbols-outlined">lock</span>
+                    <Lock :size="14" />
                     Secured by Uzanet &amp; M-Pesa
                 </div>
             </div>
@@ -176,15 +179,15 @@ const submitPayment = async () => {
             <header class="portal-topbar">
                 <div class="portal-topbar-inner">
                     <div class="topbar-brand">
-                        <span class="material-symbols-outlined topbar-wifi">wifi</span>
+                        <Wifi :size="22" class="topbar-wifi" />
                         <span class="topbar-title">Uzanet Hotspot</span>
                     </div>
                     <div class="topbar-actions">
                         <button class="topbar-icon-btn" type="button" aria-label="Help">
-                            <span class="material-symbols-outlined">help</span>
+                            <HelpCircle :size="20" />
                         </button>
                         <button class="topbar-icon-btn" type="button" aria-label="Language">
-                            <span class="material-symbols-outlined">language</span>
+                            <Globe :size="20" />
                         </button>
                     </div>
                 </div>
@@ -204,7 +207,7 @@ const submitPayment = async () => {
                     <!-- M-Pesa Plans Section -->
                     <section class="portal-section">
                         <div class="section-header">
-                            <span class="material-symbols-outlined section-icon">payments</span>
+                            <CreditCard :size="20" class="section-icon" />
                             <h2 class="section-title">Choose option to pay with M-Pesa</h2>
                         </div>
                         <div class="plan-list">
@@ -217,7 +220,7 @@ const submitPayment = async () => {
                                 @click="openPlanPopup(plan)"
                             >
                                 <div class="plan-icon-wrap" :class="{ 'plan-icon-wrap--featured': plan.featured }">
-                                    <span class="material-symbols-outlined">{{ plan.icon }}</span>
+                                    <component :is="planIconMap[plan.icon]" :size="22" />
                                 </div>
                                 <div class="plan-info">
                                     <p class="plan-label" :class="{ 'plan-label--featured': plan.featured }">{{ plan.label }}</p>
@@ -241,12 +244,12 @@ const submitPayment = async () => {
                     <!-- Ticket Login Section -->
                     <section class="ticket-card">
                         <div class="ticket-card-header">
-                            <span class="material-symbols-outlined ticket-icon">confirmation_number</span>
+                            <Ticket :size="22" class="ticket-icon" />
                             <h2 class="section-title">Login with ticket</h2>
                         </div>
 
                         <p v-if="!canSubmitLogin" class="portal-warning">
-                            <span class="material-symbols-outlined warn-icon">warning</span>
+                            <AlertTriangle :size="18" class="warn-icon" />
                             Missing required query parameter: link-login.
                         </p>
 
@@ -254,7 +257,7 @@ const submitPayment = async () => {
                             <div class="form-group">
                                 <label for="portal-username" class="form-label">USERNAME</label>
                                 <div class="input-wrap">
-                                    <span class="material-symbols-outlined input-icon-ms">person</span>
+                                    <User :size="18" class="input-icon-ms" />
                                     <input
                                         id="portal-username"
                                         v-model="ticketUsername"
@@ -269,7 +272,7 @@ const submitPayment = async () => {
                             <div class="form-group">
                                 <label for="portal-password" class="form-label">PASSWORD</label>
                                 <div class="input-wrap">
-                                    <span class="material-symbols-outlined input-icon-ms">lock</span>
+                                    <Lock :size="18" class="input-icon-ms" />
                                     <input
                                         id="portal-password"
                                         v-model="ticketPassword"
@@ -284,7 +287,7 @@ const submitPayment = async () => {
 
                             <button type="submit" class="login-btn" :disabled="!canSubmitLogin">
                                 Log In
-                                <span class="material-symbols-outlined">arrow_forward</span>
+                                <ArrowRight :size="18" />
                             </button>
                         </form>
                         <p class="ticket-recover">Lost your ticket? <a href="#" class="recover-link">Recover access</a></p>
@@ -315,11 +318,11 @@ const submitPayment = async () => {
                 <div class="modal-card">
                     <div class="modal-header">
                         <button type="button" class="modal-close" @click="closePlanPopup" aria-label="Close">
-                            <span class="material-symbols-outlined">close</span>
+                            <X :size="20" />
                         </button>
                         <div class="modal-hero">
                             <div class="modal-bolt">
-                                <span class="material-symbols-outlined modal-bolt-icon">bolt</span>
+                                <Zap :size="28" class="modal-bolt-icon" />
                             </div>
                             <h3 class="modal-title">Ksh.{{ selectedPlan.amount }} for {{ selectedPlan.name }}</h3>
                             <p class="modal-subtitle">Instant high-speed internet access</p>
@@ -330,7 +333,7 @@ const submitPayment = async () => {
                         <div class="modal-field">
                             <label class="form-label">M-PESA NUMBER</label>
                             <div class="input-wrap">
-                                <span class="material-symbols-outlined input-icon-ms">phone_iphone</span>
+                                <Smartphone :size="18" class="input-icon-ms" />
                                 <input
                                     v-model="phoneNumber"
                                     type="tel"
@@ -359,7 +362,7 @@ const submitPayment = async () => {
                             <button type="button" class="pay-btn" :disabled="submittingPayment" @click="submitPayment">
                                 <span v-if="submittingPayment" class="btn-loader" aria-hidden="true"></span>
                                 {{ submittingPayment ? 'Submitting...' : 'Submit Payment' }}
-                                <span v-if="!submittingPayment" class="material-symbols-outlined">arrow_forward</span>
+                                <ArrowRight v-if="!submittingPayment" :size="18" />
                             </button>
                             <button type="button" class="cancel-btn" @click="closePlanPopup">
                                 Cancel and go back
@@ -368,7 +371,7 @@ const submitPayment = async () => {
                     </div>
 
                     <div class="modal-trust">
-                        <span class="material-symbols-outlined trust-icon">lock</span>
+                        <Lock :size="14" class="trust-icon" />
                         <span class="trust-text">SECURE MPESA GATEWAY</span>
                     </div>
                 </div>
@@ -378,12 +381,6 @@ const submitPayment = async () => {
 </template>
 
 <style scoped>
-.material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    line-height: 1;
-    vertical-align: middle;
-}
-
 /* ── Root ─────────────────────────────────────── */
 .portal-root {
     min-height: 100vh;
@@ -627,8 +624,8 @@ const submitPayment = async () => {
     top: 50%;
     transform: translateY(-50%);
     color: #737687;
-    font-size: 20px;
     pointer-events: none;
+    display: flex;
 }
 .form-input {
     width: 100%;
@@ -687,7 +684,7 @@ const submitPayment = async () => {
     font-size: 0.875rem;
     margin-bottom: 16px;
 }
-.warn-icon { flex-shrink: 0; font-size: 18px; }
+.warn-icon { flex-shrink: 0; }
 .ticket-recover {
     margin-top: 16px;
     text-align: center;
@@ -776,9 +773,7 @@ const submitPayment = async () => {
     margin-bottom: 4px;
 }
 .modal-bolt-icon {
-    font-size: 28px;
     color: #004cca;
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 .modal-title {
     font-family: 'Manrope', sans-serif;
@@ -859,7 +854,7 @@ const submitPayment = async () => {
     padding: 16px;
     opacity: 0.5;
 }
-.trust-icon { font-size: 16px; }
+.trust-icon { display: flex; }
 .trust-text {
     font-size: 0.72rem;
     font-weight: 600;
@@ -895,7 +890,7 @@ const submitPayment = async () => {
     z-index: 1;
 }
 .sidebar-logo-row { display: flex; align-items: center; gap: 10px; }
-.sidebar-wifi-icon { font-size: 32px; color: #7dd3fc; }
+.sidebar-wifi-icon { color: #7dd3fc; }
 .sidebar-brand-name {
     font-family: 'Manrope', sans-serif;
     font-size: 1.3rem;
