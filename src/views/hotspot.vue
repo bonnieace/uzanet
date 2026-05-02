@@ -1,6 +1,6 @@
 ﻿<script setup>
-import api from '@/lib/api';
-import { onMounted, ref, computed } from 'vue';
+import { fetchHotspotUsers, addHotspotUser } from '@/lib/api';
+import { onMounted, ref, computed, watch } from 'vue';
 import Table from '@/components/Table.vue';
 import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
@@ -11,17 +11,28 @@ const store = useMainStore();
 const data = ref([]);
 const clientData = ref({ otp: '', phone_number: '', amount: '' });
 
-onMounted(async () => {
+const selectedRouterId = computed(() => store.selectedRouterId);
+
+const loadHotspotUsers = async () => {
+    if (!selectedRouterId.value) return;
     store.setLoading(true);
     try {
-        const res = await api.get('/hotspot_users');
-        data.value = res.data;
-        store.filteredData = res.data;
+        const res = await fetchHotspotUsers(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
     } catch (error) {
         console.error('Error fetching hotspot users:', error);
     } finally {
         store.setLoading(false);
     }
+};
+
+watch(selectedRouterId, (id) => { if (id) loadHotspotUsers(); });
+watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadHotspotUsers(); });
+
+onMounted(async () => {
+    await store.loadRouters();
+    if (selectedRouterId.value) loadHotspotUsers();
 });
 
 const columns = computed(() => data.value.length ? Object.keys(data.value[0]) : []);
@@ -30,13 +41,10 @@ const handleFilteredListUpdate = (list) => { store.filteredData = list; };
 
 const handleSubmit = async () => {
     try {
-        const q = new URLSearchParams(clientData.value).toString();
-        await api.post(`/hotspot_user?${q}`, null, {
-            headers: { 'Accept': 'application/json' }
-        });
-        const res = await api.get('/hotspot_users');
-        data.value = res.data;
-        store.filteredData = res.data;
+        await addHotspotUser(selectedRouterId.value, clientData.value);
+        const res = await fetchHotspotUsers(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
         store.closeModal();
         clientData.value = { otp: '', phone_number: '', amount: '' };
     } catch (error) {

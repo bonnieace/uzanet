@@ -19,7 +19,7 @@ const selectedRouterId = computed({
     get: () => store.selectedRouterId,
     set: (value) => store.setSelectedRouterId(value),
 });
-const showRouterControls = computed(() => ['Home', 'ActiveUsers'].includes(route.name));
+const showRouterControls = computed(() => ['Home', 'ActiveUsers', 'Hotspot', 'Pppoe', 'plans', 'logs', 'payments'].includes(route.name));
 
 const handleHeaderRefresh = () => {
     store.requestRouterRefresh();

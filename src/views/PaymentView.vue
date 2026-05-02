@@ -1,30 +1,36 @@
 <script setup>
-import api from '@/lib/api';
-import { ref,onMounted ,computed} from 'vue';
+import { fetchPayments } from '@/lib/api';
+import { ref, onMounted, computed, watch } from 'vue';
 import Table from '@/components/Table.vue';
 import search from '@/components/search.vue';
 import { useMainStore } from '@/stores/store';
 import customLoader from '@/components/customLoader.vue';
-const store=useMainStore()
-const data=ref([])
+const store = useMainStore();
+const data = ref([]);
 
+const selectedRouterId = computed(() => store.selectedRouterId);
 
-
-onMounted(async() => {
+const loadPayments = async () => {
+    if (!selectedRouterId.value) return;
     store.setLoading(true);
-   try {
-    const res = await api.get('/payments')
-    data.value=res.data
-    console.log(data.value)
-    
-   } catch (error) {
-       console.error('Error fetching payment records:', error);
-    
-   }finally{
-       store.setLoading(false)
-   }
-    
-})
+    try {
+        const res = await fetchPayments(selectedRouterId.value);
+        data.value = res;
+        console.log(data.value);
+    } catch (error) {
+        console.error('Error fetching payment records:', error);
+    } finally {
+        store.setLoading(false);
+    }
+};
+
+watch(selectedRouterId, (id) => { if (id) loadPayments(); });
+watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadPayments(); });
+
+onMounted(async () => {
+    await store.loadRouters();
+    if (selectedRouterId.value) loadPayments();
+});
 
 const rows=computed(()=>{
     return data.value

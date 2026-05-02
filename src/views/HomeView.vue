@@ -1,5 +1,5 @@
 <script setup>
-import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
+import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers, fetchLogs, fetchPayments } from '@/lib/api';
 import { ref,onMounted,computed, watch } from 'vue';
 import StatCard from '@/components/StatCard.vue';
 import { Wallet, CalendarDays, UserCheck, Wifi, Activity } from 'lucide-vue-next';
@@ -13,6 +13,7 @@ const store = useMainStore();
 
 const payments=ref([])
 const data=ref([])
+const dashboardLoading = ref(true)
 
 // ── Active users (per-router) ────────────────────────────────────
 const selectedRouterId = computed({
@@ -45,34 +46,62 @@ const loadActiveUsers = async () => {
     }
 };
 
-watch(selectedRouterId, (id) => {
-    if (id) loadActiveUsers();
-});
-
-watch(() => store.routerRefreshKey, () => {
-    if (selectedRouterId.value) {
-        loadActiveUsers();
+watch(() => store.routerRefreshKey, async () => {
+    if (!selectedRouterId.value) return;
+    loadActiveUsers();
+    try {
+        const [logsRes, paymentsRes] = await Promise.all([
+            fetchLogs(selectedRouterId.value),
+            fetchPayments(selectedRouterId.value),
+        ]);
+        data.value = logsRes;
+        payments.value = paymentsRes;
+    } catch (error) {
+        console.log(error);
     }
 });
 
 onMounted(async () => {
-    try {
-        const res = await api.get('/logs');
-        data.value = res.data;
-        const res2 = await api.get('/payments');
-        payments.value = res2.data;
-    } catch (error) {
-        console.log(error);
-    }
-
-    // Load routers and auto-select if none chosen
+    dashboardLoading.value = true;
     try {
         await store.loadRouters();
-        if (selectedRouterId.value) {
-            loadActiveUsers();
-        }
     } catch (e) {
         console.error('Failed to load routers on dashboard:', e);
+    }
+
+    if (selectedRouterId.value) {
+        try {
+            const [logsRes, paymentsRes] = await Promise.all([
+                fetchLogs(selectedRouterId.value),
+                fetchPayments(selectedRouterId.value),
+            ]);
+            data.value = logsRes;
+            payments.value = paymentsRes;
+        } catch (error) {
+            console.log(error);
+        }
+        loadActiveUsers();
+    }
+    dashboardLoading.value = false;
+});
+
+watch(selectedRouterId, async (id) => {
+    if (!id) return;
+    dashboardLoading.value = true;
+    data.value = [];
+    payments.value = [];
+    loadActiveUsers();
+    try {
+        const [logsRes, paymentsRes] = await Promise.all([
+            fetchLogs(id),
+            fetchPayments(id),
+        ]);
+        data.value = logsRes;
+        payments.value = paymentsRes;
+    } catch (error) {
+        console.log(error);
+    } finally {
+        dashboardLoading.value = false;
     }
 });
 const dailytotalearnings = computed(() => {
@@ -183,8 +212,25 @@ const rows = computed(() => {
 </script>
 <template>
     <div class="content">
-    <CustomLoader v-if="!data.length" />
-        <div v-else>
+        <CustomLoader :show="dashboardLoading" />
+
+        <div v-if="!dashboardLoading && !selectedRouterId" class="dashboard-empty">
+            <div class="dashboard-empty-card">
+                <span class="dashboard-empty-icon">🔌</span>
+                <h3>No Router Selected</h3>
+                <p>Select a router from the header to view the dashboard.</p>
+            </div>
+        </div>
+
+        <div v-else-if="!dashboardLoading && !payments.length && !data.length" class="dashboard-empty">
+            <div class="dashboard-empty-card">
+                <span class="dashboard-empty-icon">📭</span>
+                <h3>No Data Found</h3>
+                <p>No records found for the selected router yet.</p>
+            </div>
+        </div>
+
+        <div v-else-if="!dashboardLoading">
                 <!-- Stat Cards -->
                 <div class="cards">
                     <StatCard
@@ -258,4 +304,37 @@ const rows = computed(() => {
 </template>
 
 <style scoped>
+.dashboard-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.dashboard-empty-card {
+    text-align: center;
+    padding: 2.5rem 3rem;
+    background: var(--card-background);
+    border: var(--border-width) solid var(--border);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--border);
+    border-radius: var(--border-radius, 0);
+}
+
+.dashboard-empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.dashboard-empty-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-empty-card p {
+    color: var(--text-muted, #666);
+    font-size: 0.9rem;
+}
 </style>

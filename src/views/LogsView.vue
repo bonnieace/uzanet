@@ -1,25 +1,35 @@
 <script setup>
 import Table from '@/components/Table.vue';
-import api from '@/lib/api';
-import { ref,onMounted,computed } from 'vue';
+import { fetchLogs } from '@/lib/api';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useMainStore } from '@/stores/store';
 import customLoader from '@/components/customLoader.vue';
 import search from '@/components/search.vue';
-const store=useMainStore();
-const data=ref([])
+const store = useMainStore();
+const data = ref([]);
 
-onMounted(async () => {
+const selectedRouterId = computed(() => store.selectedRouterId);
+
+const loadLogs = async () => {
+    if (!selectedRouterId.value) return;
     store.setLoading(true);
     try {
-        const res = await api.get('/logs');
-        data.value = res.data;
-        store.filteredData = res.data; // Initialize filtered data
-
+        const res = await fetchLogs(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
     } catch (error) {
         console.log(error);
-    }finally{
+    } finally {
         store.setLoading(false);
     }
+};
+
+watch(selectedRouterId, (id) => { if (id) loadLogs(); });
+watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadLogs(); });
+
+onMounted(async () => {
+    await store.loadRouters();
+    if (selectedRouterId.value) loadLogs();
 });
 
 const columns = computed(() => {

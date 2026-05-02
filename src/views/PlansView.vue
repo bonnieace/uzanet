@@ -1,14 +1,16 @@
 ﻿<script setup>
-import api from '@/lib/api';
-import { onMounted, ref, computed } from 'vue';
+import { fetchPackages, addPackage } from '@/lib/api';
+import { onMounted, ref, computed, watch } from 'vue';
 import Table from '@/components/Table.vue';
 import Search from '@/components/search.vue';
 import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
 import customLoader from '@/components/customLoader.vue';
 
-const store=useMainStore();
+const store = useMainStore();
 const data = ref([]);
+
+const selectedRouterId = computed(() => store.selectedRouterId);
 
 // Form data state
 const planData = ref({
@@ -19,16 +21,24 @@ const planData = ref({
     validity_days: '',
 });
 
-onMounted(async () => {
-    console.log(store.showModal.value);
-    store.setLoading(true); // Start loading
+const loadPackages = async () => {
+    if (!selectedRouterId.value) return;
+    store.setLoading(true);
     try {
-        const res = await api.get('/packages');
-        data.value = res.data;
-        store.filteredData = res.data; // Initialize filtered data
-    }finally{
-        store.setLoading(false); // Stop loading
+        const res = await fetchPackages(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
+    } finally {
+        store.setLoading(false);
     }
+};
+
+watch(selectedRouterId, (id) => { if (id) loadPackages(); });
+watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadPackages(); });
+
+onMounted(async () => {
+    await store.loadRouters();
+    if (selectedRouterId.value) loadPackages();
 });
 
 const columns = computed(() => {
@@ -53,34 +63,22 @@ const closeModal = () => {
 // Function to submit form data
 const handleSubmit = async () => {
     try {
-        console.log(planData.value);
-        // Convert plan data to query parameters
-        const queryString = new URLSearchParams(planData.value).toString();
-        console.log(queryString);
-
-        // Make the request
-        const response = await api.post(`/package?${queryString}`, null, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        console.log('âœ… plan added successfully:', response.data);
+        await addPackage(selectedRouterId.value, planData.value);
 
         // Refresh data after successful submission
-        const res = await api.get('/packages');
-        data.value = res.data;
-        store.filteredData = res.data; // Initialize filtered data
-
+        const res = await fetchPackages(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
 
         // Close modal and reset form
         closeModal();
-        planData.value = { name: '', description: '', price: '',service_type: '',validity_days: '' };
+        planData.value = { name: '', description: '', price: '', service_type: '', validity_days: '' };
     } catch (error) {
-        console.error('âŒ Error adding plan:', error.response?.data || error.message);
+        console.error('Error adding plan:', error.response?.data || error.message);
     }
 };
 </script>
+
 
 <template>
     <div class="content">

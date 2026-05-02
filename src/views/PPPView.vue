@@ -1,7 +1,7 @@
 ﻿<script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import Table from '@/components/Table.vue';
-import api from '@/lib/api';
+import { fetchPppUsers, addPppUser } from '@/lib/api';
 import Search from '@/components/search.vue';
 import Modal from '@/components/Modal.vue';
 import { useMainStore } from '@/stores/store';
@@ -10,45 +10,43 @@ import CustomLoader from '@/components/customLoader.vue';
 const store = useMainStore();
 const data = ref([]);
 
-async function addClient(clientData) {
-    try {
-        const queryString = new URLSearchParams(clientData).toString();
-        const response = await api.post(`/ppp_user?${queryString}`, null, {
-            headers: { 'Accept': 'application/json' }
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error adding client:', error.response?.data || error.message);
-        throw error;
-    }
-}
+const selectedRouterId = computed(() => store.selectedRouterId);
 
 const handleSubmit = async (event) => {
     try {
         const formData = new FormData(event.target);
         const clientData = Object.fromEntries(formData.entries());
-        await addClient(clientData);
+        await addPppUser(selectedRouterId.value, clientData);
         event.target.reset();
         store.closeModal();
-        const res = await api.get('/ppp_users');
-        data.value = res.data;
-        store.filteredData = res.data;
+        const res = await fetchPppUsers(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
     } catch (error) {
         console.error('Failed to submit form:', error);
     }
 };
 
-onMounted(async () => {
+const loadPppUsers = async () => {
+    if (!selectedRouterId.value) return;
     store.setLoading(true);
     try {
-        const res = await api.get('/ppp_users');
-        data.value = res.data;
-        store.filteredData = res.data;
+        const res = await fetchPppUsers(selectedRouterId.value);
+        data.value = res;
+        store.filteredData = res;
     } catch (error) {
         console.log(error);
     } finally {
         store.setLoading(false);
     }
+};
+
+watch(selectedRouterId, (id) => { if (id) loadPppUsers(); });
+watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadPppUsers(); });
+
+onMounted(async () => {
+    await store.loadRouters();
+    if (selectedRouterId.value) loadPppUsers();
 });
 
 const columns = computed(() => data.value.length ? Object.keys(data.value[0]) : []);
