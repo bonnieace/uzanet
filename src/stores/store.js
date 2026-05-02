@@ -11,6 +11,22 @@ export const useMainStore = defineStore('main', () => {
     const token = ref(localStorage.getItem('auth_token') || null);
     const isAuthenticated = computed(() => !!token.value);
 
+    // Selected router — persisted in localStorage
+    const selectedRouterId = ref(
+        localStorage.getItem('selected_router_id')
+            ? Number(localStorage.getItem('selected_router_id'))
+            : null
+    );
+
+    const setSelectedRouterId = (id) => {
+        selectedRouterId.value = id;
+        if (id !== null && id !== undefined) {
+            localStorage.setItem('selected_router_id', String(id));
+        } else {
+            localStorage.removeItem('selected_router_id');
+        }
+    };
+
     const login = (newToken) => {
         token.value = newToken;
         localStorage.setItem('auth_token', newToken);
@@ -44,6 +60,8 @@ export const useMainStore = defineStore('main', () => {
         filteredData,
         token,
         isAuthenticated,
+        selectedRouterId,
+        setSelectedRouterId,
         login,
         logout,
         handleFilteredListUpdate,

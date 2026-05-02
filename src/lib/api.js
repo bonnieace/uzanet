@@ -24,4 +24,10 @@ api.interceptors.response.use(
     }
 );
 
+export const fetchActiveHotspotUsers = (routerId) =>
+    api.get(`/active_users/${routerId}/hotspot`).then((r) => r.data);
+
+export const fetchActivePppoeUsers = (routerId) =>
+    api.get(`/active_users/${routerId}/pppoe`).then((r) => r.data);
+
 export default api;
