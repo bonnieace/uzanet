@@ -1,15 +1,54 @@
 <script setup>
-import api from '@/lib/api';
-import { ref,onMounted,computed } from 'vue';
+import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
+import { ref,onMounted,computed, watch } from 'vue';
 import StatCard from '@/components/StatCard.vue';
-import { Wallet, CalendarDays, UserCheck, Wifi } from 'lucide-vue-next';
+import { Wallet, CalendarDays, UserCheck, Wifi, Activity } from 'lucide-vue-next';
 import graph from '@/components/graph.vue';
 import Table from '@/components/Table.vue';
 import Chart from '@/components/chart.vue';
 import CustomLoader from '@/components/customLoader.vue';
+import { useMainStore } from '@/stores/store';
+
+const store = useMainStore();
 
 const payments=ref([])
 const data=ref([])
+
+// ── Active users (per-router) ────────────────────────────────────
+const routers = ref([]);
+const selectedRouterId = computed({
+    get: () => store.selectedRouterId,
+    set: (val) => store.setSelectedRouterId(val),
+});
+
+const hotspotActiveCount = ref(null);
+const pppoeActiveCount = ref(null);
+const activeUsersLoading = ref(false);
+const activeUsersError = ref('');
+
+const loadActiveUsers = async () => {
+    if (!selectedRouterId.value) return;
+    activeUsersLoading.value = true;
+    activeUsersError.value = '';
+    try {
+        const [hotspotRes, pppoeRes] = await Promise.all([
+            fetchActiveHotspotUsers(selectedRouterId.value),
+            fetchActivePppoeUsers(selectedRouterId.value),
+        ]);
+        hotspotActiveCount.value = (hotspotRes.hotspot_active || []).length;
+        pppoeActiveCount.value = (pppoeRes.pppoe_active || []).length;
+    } catch (e) {
+        activeUsersError.value = e.response?.data?.detail || 'Failed to load active user counts.';
+        hotspotActiveCount.value = null;
+        pppoeActiveCount.value = null;
+    } finally {
+        activeUsersLoading.value = false;
+    }
+};
+
+watch(selectedRouterId, (id) => {
+    if (id) loadActiveUsers();
+});
 
 onMounted(async () => {
     try {
@@ -19,6 +58,18 @@ onMounted(async () => {
         payments.value = res2.data;
     } catch (error) {
         console.log(error);
+    }
+
+    // Load routers and auto-select if none chosen
+    try {
+        const routerRes = await api.get('/routers');
+        routers.value = routerRes.data || [];
+        if (!selectedRouterId.value && routers.value.length) {
+            store.setSelectedRouterId(routers.value[0].id);
+        }
+        loadActiveUsers();
+    } catch (e) {
+        console.error('Failed to load routers on dashboard:', e);
     }
 });
 const dailytotalearnings = computed(() => {
@@ -131,6 +182,20 @@ const rows = computed(() => {
     <div class="content">
     <CustomLoader v-if="!data.length" />
         <div v-else>
+                <!-- Router selector for active user cards -->
+                <div class="dash-router-bar" v-if="routers.length > 1">
+                    <label class="neo-label" for="dash-router-select">Router</label>
+                    <select
+                        id="dash-router-select"
+                        v-model="selectedRouterId"
+                        class="neo-input dash-router-select"
+                    >
+                        <option v-for="r in routers" :key="r.id" :value="r.id">
+                            {{ r.name || r.ip_address }}
+                        </option>
+                    </select>
+                </div>
+
                 <!-- Stat Cards -->
                 <div class="cards">
                     <StatCard
@@ -169,6 +234,25 @@ const rows = computed(() => {
                         color="secondary"
                         subtitle="vs yesterday"
                     />
+                    <!-- Active user cards -->
+                    <StatCard
+                        title="Hotspot Active Users"
+                        :icon="Wifi"
+                        :value="activeUsersLoading ? '…' : activeUsersError ? 'Error' : (hotspotActiveCount ?? '—')"
+                        :change="activeUsersError ? activeUsersError : null"
+                        :trend="activeUsersError ? 'down' : 'neutral'"
+                        color="primary"
+                        subtitle="currently online"
+                    />
+                    <StatCard
+                        title="PPPoE Active Users"
+                        :icon="Activity"
+                        :value="activeUsersLoading ? '…' : activeUsersError ? 'Error' : (pppoeActiveCount ?? '—')"
+                        :change="activeUsersError ? activeUsersError : null"
+                        :trend="activeUsersError ? 'down' : 'neutral'"
+                        color="success"
+                        subtitle="currently online"
+                    />
                 </div>
                 
 
@@ -183,3 +267,17 @@ const rows = computed(() => {
             </div>
         </div>
 </template>
+
+<style scoped>
+.dash-router-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.dash-router-select {
+    max-width: 220px;
+}
+</style>

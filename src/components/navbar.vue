@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut } from 'lucide-vue-next';
+import { Menu, House, Users, Wifi, ClipboardList, BarChart2, CreditCard, Settings, Sun, Moon, CircleUser, LogOut, Activity } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 
 const route = useRoute();
@@ -65,6 +65,7 @@ watch(() => route.path, () => {
                     <li><RouterLink to="/" :class="{ active: route.path === '/' }" @click="closeMobileMenu()" class="neo-nav-link"><House :size="16" /> <span>Dashboard</span></RouterLink></li>
                     <li><RouterLink to="/clients" :class="{ active: route.path === '/clients' }" @click="closeMobileMenu()" class="neo-nav-link"><Users :size="16" /> <span>PPPoE</span></RouterLink></li>
                     <li><RouterLink to="/hotspot" :class="{ active: route.path === '/hotspot' }" @click="closeMobileMenu()" class="neo-nav-link"><Wifi :size="16" /> <span>Hotspot</span></RouterLink></li>
+                    <li><RouterLink to="/active-users" :class="{ active: route.path === '/active-users' }" @click="closeMobileMenu()" class="neo-nav-link"><Activity :size="16" /> <span>Active Users</span></RouterLink></li>
                     <li><RouterLink to="/plans" :class="{ active: route.path === '/plans' }" @click="closeMobileMenu()" class="neo-nav-link"><ClipboardList :size="16" /> <span>Plans</span></RouterLink></li>
                     <li><RouterLink to="/logs" :class="{ active: route.path === '/logs' }" @click="closeMobileMenu()" class="neo-nav-link"><BarChart2 :size="16" /> <span>Logs</span></RouterLink></li>
                     <li><RouterLink to="/payments" :class="{ active: route.path === '/payments' }" @click="closeMobileMenu()" class="neo-nav-link"><CreditCard :size="16" /> <span>Payments</span></RouterLink></li>
