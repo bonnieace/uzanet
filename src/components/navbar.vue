@@ -129,6 +129,7 @@ watch(() => route.path, () => {
                 :disabled="!store.selectedRouterId"
                 @click="store.triggerRefresh()"
                 title="Refresh"
+                aria-label="Refresh"
             >
                 <RefreshCw :size="16" />
                 <span class="btn-label">Refresh</span>
