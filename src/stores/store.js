@@ -11,6 +11,10 @@ export const useMainStore = defineStore('main', () => {
     const token = ref(localStorage.getItem('auth_token') || null);
     const isAuthenticated = computed(() => !!token.value);
 
+    // Router selection — shared across dashboard and active users
+    const routers = ref([]);
+    const selectedRouterId = ref(null);
+
     const login = (newToken) => {
         token.value = newToken;
         localStorage.setItem('auth_token', newToken);
@@ -44,6 +48,8 @@ export const useMainStore = defineStore('main', () => {
         filteredData,
         token,
         isAuthenticated,
+        routers,
+        selectedRouterId,
         login,
         logout,
         handleFilteredListUpdate,

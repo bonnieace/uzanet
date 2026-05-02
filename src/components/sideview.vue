@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import { LayoutDashboard, Users, Wifi, Layers, Terminal, CreditCard, Settings, Zap, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next';
+import { LayoutDashboard, Users, Wifi, Layers, Terminal, CreditCard, Settings, Zap, PanelLeftClose, PanelLeftOpen, Activity } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
 const route = useRoute();
 const store = useMainStore();
@@ -13,13 +13,14 @@ const toggle = () => {
 };
 
 const navItems = [
-  { to: '/',         icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/clients',  icon: Users,           label: 'PPPoE' },
-  { to: '/hotspot',  icon: Wifi,            label: 'Hotspot' },
-  { to: '/plans',    icon: Layers,          label: 'Plans' },
-  { to: '/logs',     icon: Terminal,        label: 'Logs' },
-  { to: '/payments', icon: CreditCard,      label: 'Payments' },
-  { to: '/routers',  icon: Settings,        label: 'Routers' },
+  { to: '/',              icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/clients',       icon: Users,           label: 'PPPoE' },
+  { to: '/hotspot',       icon: Wifi,            label: 'Hotspot' },
+  { to: '/active-users',  icon: Activity,        label: 'Active Users' },
+  { to: '/plans',         icon: Layers,          label: 'Plans' },
+  { to: '/logs',          icon: Terminal,        label: 'Logs' },
+  { to: '/payments',      icon: CreditCard,      label: 'Payments' },
+  { to: '/routers',       icon: Settings,        label: 'Routers' },
 ];
 </script>
 

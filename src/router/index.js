@@ -9,6 +9,7 @@ import PaymentView from '@/views/PaymentView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RoutersView from '@/views/RoutersView.vue';
 import PortalLoginView from '@/views/PortalLoginView.vue';
+import ActiveUsersView from '@/views/ActiveUsersView.vue';
 
 
 const router = createRouter({
@@ -65,6 +66,11 @@ const router = createRouter({
       path:'/routers',
       name:'Routers',
       component:RoutersView
+    },
+    {
+      path: '/active-users',
+      name: 'ActiveUsers',
+      component: ActiveUsersView,
     }
   ],
 })

@@ -1,15 +1,79 @@
 <script setup>
 import api from '@/lib/api';
-import { ref,onMounted,computed } from 'vue';
+import { ref,onMounted,computed, watch } from 'vue';
 import StatCard from '@/components/StatCard.vue';
-import { Wallet, CalendarDays, UserCheck, Wifi } from 'lucide-vue-next';
+import { Wallet, CalendarDays, UserCheck, Wifi, Activity, Users } from 'lucide-vue-next';
 import graph from '@/components/graph.vue';
 import Table from '@/components/Table.vue';
 import Chart from '@/components/chart.vue';
 import CustomLoader from '@/components/customLoader.vue';
+import { useMainStore } from '@/stores/store';
+import { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/services/activeUsers';
 
+const store = useMainStore();
 const payments=ref([])
 const data=ref([])
+
+// ── Router selection for active-user cards ──────────────────
+const routersLoading = ref(false);
+
+const loadRouters = async () => {
+    if (store.routers.length) return;
+    routersLoading.value = true;
+    try {
+        const res = await api.get('/routers');
+        store.routers = res.data || [];
+        if (store.routers.length && !store.selectedRouterId) {
+            store.selectedRouterId = store.routers[0].id;
+        }
+    } catch {
+        // silently ignore — stat cards will show error state
+    } finally {
+        routersLoading.value = false;
+    }
+};
+
+// ── Active user counts ──────────────────────────────────────
+const hotspotCount = ref(null);
+const pppoeCount = ref(null);
+const hotspotError = ref(false);
+const pppoeError = ref(false);
+const hotspotCountLoading = ref(false);
+const pppoeCountLoading = ref(false);
+
+const loadActiveCounts = async () => {
+    if (!store.selectedRouterId) return;
+
+    hotspotCountLoading.value = true;
+    pppoeCountLoading.value = true;
+    hotspotError.value = false;
+    pppoeError.value = false;
+
+    const [hotspotResult, pppoeResult] = await Promise.allSettled([
+        fetchActiveHotspotUsers(store.selectedRouterId),
+        fetchActivePppoeUsers(store.selectedRouterId),
+    ]);
+
+    if (hotspotResult.status === 'fulfilled') {
+        hotspotCount.value = Array.isArray(hotspotResult.value) ? hotspotResult.value.length : 0;
+    } else {
+        hotspotError.value = true;
+        hotspotCount.value = null;
+    }
+    hotspotCountLoading.value = false;
+
+    if (pppoeResult.status === 'fulfilled') {
+        pppoeCount.value = Array.isArray(pppoeResult.value) ? pppoeResult.value.length : 0;
+    } else {
+        pppoeError.value = true;
+        pppoeCount.value = null;
+    }
+    pppoeCountLoading.value = false;
+};
+
+watch(() => store.selectedRouterId, (id) => {
+    if (id) loadActiveCounts();
+});
 
 onMounted(async () => {
     try {
@@ -20,6 +84,8 @@ onMounted(async () => {
     } catch (error) {
         console.log(error);
     }
+    await loadRouters();
+    if (store.selectedRouterId) loadActiveCounts();
 });
 const dailytotalearnings = computed(() => {
     return payments.value.reduce((total, payment) => {
@@ -131,6 +197,24 @@ const rows = computed(() => {
     <div class="content">
     <CustomLoader v-if="!data.length" />
         <div v-else>
+                <!-- Router selector for active user cards -->
+                <div class="hv-router-bar" v-if="store.routers.length || routersLoading">
+                    <label for="hv-router-select" class="hv-router-label">Router</label>
+                    <select
+                        id="hv-router-select"
+                        v-model="store.selectedRouterId"
+                        class="hv-router-select"
+                        :disabled="routersLoading"
+                    >
+                        <option v-if="routersLoading" disabled value="">Loading…</option>
+                        <option
+                            v-for="r in store.routers"
+                            :key="r.id"
+                            :value="r.id"
+                        >{{ r.name }}</option>
+                    </select>
+                </div>
+
                 <!-- Stat Cards -->
                 <div class="cards">
                     <StatCard
@@ -169,6 +253,22 @@ const rows = computed(() => {
                         color="secondary"
                         subtitle="vs yesterday"
                     />
+                    <StatCard
+                        title="Hotspot Active Users"
+                        :icon="Activity"
+                        :value="hotspotCountLoading ? '…' : (hotspotError ? '—' : (hotspotCount ?? '—'))"
+                        :change="null"
+                        color="primary"
+                        :subtitle="hotspotError ? 'unavailable' : 'live sessions'"
+                    />
+                    <StatCard
+                        title="PPPoE Active Users"
+                        :icon="Users"
+                        :value="pppoeCountLoading ? '…' : (pppoeError ? '—' : (pppoeCount ?? '—'))"
+                        :change="null"
+                        color="warning"
+                        :subtitle="pppoeError ? 'unavailable' : 'live sessions'"
+                    />
                 </div>
                 
 
@@ -183,3 +283,40 @@ const rows = computed(() => {
             </div>
         </div>
 </template>
+
+<style scoped>
+.hv-router-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.hv-router-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.75px;
+    color: var(--muted-foreground);
+}
+
+.hv-router-select {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: inherit;
+    background-color: var(--card);
+    color: var(--foreground);
+    border: var(--border-width) solid var(--border);
+    box-shadow: 3px 3px 0px 0px var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    cursor: pointer;
+    min-width: 160px;
+}
+
+.hv-router-select:focus {
+    box-shadow: 0 0 0 3px var(--primary);
+}
+</style>
