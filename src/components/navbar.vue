@@ -95,6 +95,7 @@ watch(showRouterControls, (enabled) => {
         <div class="header-right">
             <div v-if="showRouterControls" class="header-tools">
                 <select
+                    v-if="store.routersLoading || store.routers.length > 1"
                     v-model="selectedRouterId"
                     class="neo-input header-router-select"
                     :disabled="store.routersLoading"
