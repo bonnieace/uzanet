@@ -41,8 +41,14 @@ const props = defineProps({
     pageSize: {
         type: Number,
         default: 5
+    },
+    enableActions: {
+        type: Boolean,
+        default: false
     }
 });
+
+const emit = defineEmits(['edit', 'delete']);
 
 const filterValue = ref('');
 const currentPage = ref(1);
@@ -299,6 +305,7 @@ watch(
                                 />
                             </th>
                             <th v-for="column in visibleColumnKeys" :key="column">{{ column }}</th>
+                            <th v-if="enableActions" class="neo-data-table__actions-cell">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -312,6 +319,12 @@ watch(
                             </td>
                             <td v-for="column in visibleColumnKeys" :key="column">
                                 <span :class="getCellClass(column, row[column])">{{ formatCellValue(column, row[column]) }}</span>
+                            </td>
+                            <td v-if="enableActions" class="neo-data-table__actions-cell">
+                                <div class="neo-data-table__action-btns">
+                                    <button type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">Edit</button>
+                                    <button type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">Delete</button>
+                                </div>
                             </td>
                         </tr>
                         <tr v-if="visibleRows.length === 0">
@@ -332,13 +345,17 @@ watch(
                                 <span :class="getCellClass(column, row[column])">{{ formatCellValue(column, row[column]) }}</span>
                             </div>
                         </div>
-                        <span class="neo-mobile-card__expand" v-if="hasMobileDetails" aria-hidden="true">↓</span>
+                        <span class="neo-mobile-card__expand" v-if="hasMobileDetails || enableActions" aria-hidden="true">↓</span>
                     </summary>
 
-                    <div v-if="hasMobileDetails" class="neo-mobile-card__details">
+                    <div v-if="hasMobileDetails || enableActions" class="neo-mobile-card__details">
                         <div v-for="column in mobileDetailColumns" :key="`detail-${getRowKey(row, rowIndex)}-${column}`" class="neo-mobile-card__field">
                             <span class="neo-mobile-card__label">{{ formatColumnLabel(column) }}</span>
                             <span :class="getCellClass(column, row[column])">{{ formatCellValue(column, row[column]) }}</span>
+                        </div>
+                        <div v-if="enableActions" class="neo-mobile-card__actions">
+                            <button type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">Edit</button>
+                            <button type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">Delete</button>
                         </div>
                     </div>
                 </details>
@@ -702,6 +719,53 @@ watch(
     text-align: center;
     font-weight: 800;
     color: var(--muted-foreground);
+}
+
+.neo-data-table__actions-cell {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.neo-data-table__action-btns {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.neo-mobile-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.neo-action-btn {
+    border: var(--border-width) solid var(--border);
+    background: var(--background);
+    color: var(--foreground);
+    padding: 0.45rem 0.75rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px 0px var(--border);
+    transition: all 0.1s ease;
+}
+
+.neo-action-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px 0px var(--border);
+}
+
+.neo-action-btn--delete {
+    border-color: #dc2626;
+    color: #dc2626;
+    box-shadow: 2px 2px 0px 0px #dc2626;
+}
+
+.neo-action-btn--delete:hover {
+    background: #dc2626;
+    color: #fff;
 }
 
 @media screen and (max-width: 768px) {

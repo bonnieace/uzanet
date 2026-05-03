@@ -10,7 +10,20 @@ import { useMainStore } from '@/stores/store';
 const store = useMainStore();
 const data = ref([]);
 
+const showEditModal = ref(false);
+const editingId = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingRouter = ref(null);
+
 const routerData = ref({
+    name: '',
+    ip_address: '',
+    port: 8728,
+    username: '',
+    password: '',
+});
+
+const editData = ref({
     name: '',
     ip_address: '',
     port: 8728,
@@ -108,6 +121,48 @@ const handleSubmit = async () => {
         console.error('Error adding router:', error.response?.data || error.message);
     }
 };
+
+const handleEditRequest = (row) => {
+    editingId.value = row.id;
+    editData.value = {
+        name: row.name ?? '',
+        ip_address: row.ip_address ?? '',
+        port: row.port ?? 8728,
+        username: row.username ?? '',
+        password: '',
+    };
+    showEditModal.value = true;
+};
+
+const handleEditSubmit = async () => {
+    try {
+        const queryString = new URLSearchParams(editData.value).toString();
+        await api.put(`/router/${editingId.value}?${queryString}`, null, {
+            headers: { Accept: 'application/json' },
+        });
+        await loadRouters();
+        showEditModal.value = false;
+        editingId.value = null;
+    } catch (error) {
+        console.error('Error updating router:', error.response?.data || error.message);
+    }
+};
+
+const handleDeleteRequest = (row) => {
+    deletingRouter.value = row;
+    showDeleteConfirm.value = true;
+};
+
+const handleDeleteConfirm = async () => {
+    try {
+        await api.delete(`/router/${deletingRouter.value.id}`);
+        await loadRouters();
+        showDeleteConfirm.value = false;
+        deletingRouter.value = null;
+    } catch (error) {
+        console.error('Error deleting router:', error.response?.data || error.message);
+    }
+};
 </script>
 
 <template>
@@ -153,7 +208,64 @@ const handleSubmit = async () => {
             </form>
         </Modal>
 
+        <!-- Edit Modal -->
+        <Modal :show="showEditModal" @close="showEditModal = false">
+            <h3 class="neo-modal-heading">Edit Router</h3>
+            <form @submit.prevent="handleEditSubmit">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-name">Router Name*</label>
+                        <input id="edit-name" v-model="editData.name" type="text" placeholder="matangi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ip_address">IP Address*</label>
+                        <input id="edit-ip_address" v-model="editData.ip_address" type="text" placeholder="10.10.1.2" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-port">Port*</label>
+                        <input id="edit-port" v-model.number="editData.port" type="number" placeholder="8728" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-username">Username*</label>
+                        <input id="edit-username" v-model="editData.username" type="text" placeholder="admin" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-password">Password <span style="font-weight:500;font-size:0.8em;">(leave blank to keep current)</span></label>
+                        <input id="edit-password" v-model="editData.password" type="password" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="submit-button">Save Changes</button>
+            </form>
+        </Modal>
+
+        <!-- Delete Confirmation Modal -->
+        <Modal :show="showDeleteConfirm" @close="showDeleteConfirm = false">
+            <h3 class="neo-modal-heading">Delete Router</h3>
+            <p style="margin: 1rem 0;">
+                Are you sure you want to delete
+                <strong>{{ deletingRouter?.name }}</strong>
+                (<code>{{ deletingRouter?.ip_address }}</code>)?
+                This action cannot be undone.
+            </p>
+            <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+                <button type="button" class="submit-button" style="background:#dc2626;border-color:#dc2626;" @click="handleDeleteConfirm">Delete</button>
+                <button type="button" class="submit-button" style="background:var(--muted);color:var(--foreground);" @click="showDeleteConfirm = false">Cancel</button>
+            </div>
+        </Modal>
+
         <CustomLoader v-if="store.isLoading" />
-        <Table v-else title="Routers" :columns="columns" :rows="rows" />
+        <Table
+            v-else
+            title="Routers"
+            :columns="columns"
+            :rows="rows"
+            :enable-actions="true"
+            @edit="handleEditRequest"
+            @delete="handleDeleteRequest"
+        />
     </div>
 </template>
