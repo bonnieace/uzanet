@@ -97,7 +97,7 @@ const submitPayment = async () => {
     submittingPayment.value = true;
 
     try {
-        const endpoint = `http://10.10.10.1:8083/stkpush/initiate?phone_number=${encodeURIComponent(processedPhoneNumber)}&amount=${selectedPlan.value.amount}&router_id=2`;
+        const endpoint = `http://10.10.10.10:8083/stkpush/initiate?phone_number=${encodeURIComponent(processedPhoneNumber)}&amount=${selectedPlan.value.amount}&router_id=2`;
 
         const response = await fetch(endpoint, {
             method: 'POST',
