@@ -1,9 +1,9 @@
 <script setup>
-import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMainStore } from '@/stores/store';
 import { LogIn } from 'lucide-vue-next';
+import { errorMessage, loginOperator } from '@/lib/api';
 
 const router = useRouter();
 const store = useMainStore();
@@ -17,17 +17,14 @@ const handleLogin = async () => {
     error.value = '';
     loading.value = true;
     try {
-        const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/token`, new URLSearchParams({
-            username: username.value,
-            password: password.value,
-        }));
-        store.login(res.data.access_token);
+        const result = await loginOperator(username.value, password.value);
+        await store.login(result.access_token);
         router.push({ name: 'Home' });
     } catch (err) {
         if (err.response?.status === 401) {
             error.value = 'Invalid username or password.';
         } else {
-            error.value = 'Unable to connect. Please try again.';
+            error.value = errorMessage(err, 'Unable to connect. Please try again.');
         }
     } finally {
         loading.value = false;

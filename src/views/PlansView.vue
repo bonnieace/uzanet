@@ -1,134 +1,75 @@
-﻿<script setup>
-import { fetchPackages, addPackage } from '@/lib/api';
-import { onMounted, ref, computed, watch } from 'vue';
+<script setup>
+import { computed, onMounted, ref, watch } from 'vue';
+import { addPackage, errorMessage, fetchPackages, retirePackage, updatePackage } from '@/lib/api';
 import Table from '@/components/Table.vue';
 import Search from '@/components/search.vue';
 import Modal from '@/components/Modal.vue';
+import CustomLoader from '@/components/customLoader.vue';
 import { useMainStore } from '@/stores/store';
-import customLoader from '@/components/customLoader.vue';
 
 const store = useMainStore();
 const data = ref([]);
-
+const filtered = ref([]);
+const error = ref('');
+const editingUid = ref(null);
 const selectedRouterId = computed(() => store.selectedRouterId);
-
-// Form data state
-const planData = ref({
-    name: '',
-    description: '',
-    price: '',
-    service_type: '',
-    validity_days: '',
-});
+const columns = ['name', 'description', 'price', 'service_type', 'validity_minutes', 'router_profile', 'rate_limit', 'is_active'];
+const rows = computed(() => filtered.value);
+const blankPlan = () => ({ name: '', description: '', price: '', service_type: 'hotspot', validity_minutes: 60, router_profile: 'default', rate_limit: '', is_active: true });
+const planData = ref(blankPlan());
 
 const loadPackages = async () => {
     if (!selectedRouterId.value) return;
     store.setLoading(true);
     try {
-        const res = await fetchPackages(selectedRouterId.value);
-        data.value = res;
-        store.filteredData = res;
-    } finally {
-        store.setLoading(false);
-    }
+        data.value = await fetchPackages(selectedRouterId.value);
+        filtered.value = data.value;
+    } catch (loadError) {
+        error.value = errorMessage(loadError, 'Unable to load packages.');
+    } finally { store.setLoading(false); }
 };
 
-watch(selectedRouterId, (id) => { if (id) loadPackages(); });
-watch(() => store.routerRefreshKey, () => { if (selectedRouterId.value) loadPackages(); });
+watch(selectedRouterId, loadPackages);
+watch(() => store.routerRefreshKey, loadPackages);
+onMounted(async () => { await store.loadRouters(); await loadPackages(); });
 
-onMounted(async () => {
-    await store.loadRouters();
-    if (selectedRouterId.value) loadPackages();
-});
-
-const columns = computed(() => {
-    if (data.value && data.value.length > 0) {
-        return Object.keys(data.value[0]);
-    }
-    return [];
-});
-
-const rows = computed(() => store.filteredData);
-const handleFilteredListUpdate = (updatedList) => {
-    store.filteredData = updatedList;
-};
-const openModal = () => {
-    store.showModal.value = true;
-};
-
-const closeModal = () => {
-    store.showModal.value = false;
-};
-
-// Function to submit form data
-const handleSubmit = async () => {
+const openCreate = () => { editingUid.value = null; planData.value = blankPlan(); store.openModal(); };
+const openEdit = (row) => { editingUid.value = row.uid; planData.value = { ...row, price: Number(row.price), rate_limit: row.rate_limit || '' }; store.openModal(); };
+const save = async () => {
+    const payload = { ...planData.value, price: Number(planData.value.price), validity_minutes: Number(planData.value.validity_minutes), rate_limit: planData.value.rate_limit || null };
+    delete payload.uid; delete payload.created_at; delete payload.updated_at;
     try {
-        await addPackage(selectedRouterId.value, planData.value);
-
-        // Refresh data after successful submission
-        const res = await fetchPackages(selectedRouterId.value);
-        data.value = res;
-        store.filteredData = res;
-
-        // Close modal and reset form
-        closeModal();
-        planData.value = { name: '', description: '', price: '', service_type: '', validity_days: '' };
-    } catch (error) {
-        console.error('Error adding plan:', error.response?.data || error.message);
-    }
+        if (editingUid.value) {
+            delete payload.service_type;
+            await updatePackage(selectedRouterId.value, editingUid.value, payload);
+        } else await addPackage(selectedRouterId.value, payload);
+        store.closeModal();
+        await loadPackages();
+    } catch (saveError) { error.value = errorMessage(saveError, 'Unable to save package.'); }
+};
+const retire = async (row) => {
+    if (!window.confirm(`Retire ${row.name}? Existing payment records are preserved.`)) return;
+    try { await retirePackage(selectedRouterId.value, row.uid); await loadPackages(); }
+    catch (retireError) { error.value = errorMessage(retireError, 'Unable to retire package.'); }
 };
 </script>
 
-
 <template>
     <div class="content">
-        <Search
-            :clicked="store.openModal"
-            :list="data"
-            :search-keys="columns"
-            @updateFilteredList="handleFilteredListUpdate"
-            title="Add Plan"
-        />
-
+        <Search :clicked="openCreate" :list="data" :search-keys="columns" title="Add Plan" @updateFilteredList="filtered = $event" />
+        <p v-if="error" class="form-error">{{ error }}</p>
         <Modal :show="store.showModal" @close="store.closeModal">
-            <h3 class="neo-modal-heading">Add New Plan</h3>
-            <form @submit.prevent="handleSubmit">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Plan Name*</label>
-                        <input type="text" id="name" v-model="planData.name" placeholder="e.g. Basic" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="description">Description*</label>
-                        <input type="text" id="description" v-model="planData.description" placeholder="1 week connection" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="price">Price (Ksh)*</label>
-                        <input type="number" id="price" v-model="planData.price" placeholder="300" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="validity_days">Validity (Days)*</label>
-                        <input type="number" id="validity_days" v-model="planData.validity_days" placeholder="7" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="service_type">Service Type*</label>
-                        <select id="service_type" v-model="planData.service_type" required>
-                            <option value="pppoe">PPPoE</option>
-                            <option value="hotspot">Hotspot</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="submit-button">Add Plan</button>
+            <h3 class="neo-modal-heading">{{ editingUid ? 'Edit' : 'Add' }} Plan</h3>
+            <form @submit.prevent="save">
+                <div class="form-row"><div class="form-group"><label>Name*</label><input v-model="planData.name" required /></div><div class="form-group"><label>Price (KES)*</label><input v-model.number="planData.price" type="number" min="1" step="0.01" required /></div></div>
+                <div class="form-group"><label>Description</label><input v-model="planData.description" /></div>
+                <div class="form-row"><div class="form-group"><label>Service*</label><select v-model="planData.service_type" :disabled="Boolean(editingUid)"><option value="hotspot">Hotspot</option><option value="pppoe">PPPoE</option></select></div><div class="form-group"><label>Validity (minutes)*</label><input v-model.number="planData.validity_minutes" type="number" min="1" max="525600" required /></div></div>
+                <div class="form-row"><div class="form-group"><label>RouterOS profile*</label><input v-model="planData.router_profile" required /></div><div class="form-group"><label>Rate label</label><input v-model="planData.rate_limit" placeholder="10M/10M" /></div></div>
+                <label><input v-model="planData.is_active" type="checkbox" /> Available for purchase</label>
+                <button class="submit-button" type="submit">Save Plan</button>
             </form>
         </Modal>
-
         <CustomLoader v-if="store.isLoading" />
-        <Table v-else title="Plans" :columns="columns" :rows="rows" />
+        <Table v-else title="Plans" :columns="columns" :rows="rows" :enable-actions="true" @edit="openEdit" @delete="retire" />
     </div>
 </template>

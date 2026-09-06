@@ -8,8 +8,8 @@ const route = useRoute();
 const router = useRouter();
 const store = useMainStore();
 
-const handleLogout = () => {
-    store.logout();
+const handleLogout = async () => {
+    await store.logout();
     router.push({ name: 'Login' });
 };
 
@@ -103,7 +103,7 @@ watch(showRouterControls, (enabled) => {
                 >
                     <option v-if="store.routersLoading" :value="null">Loading routers...</option>
                     <option v-else-if="!store.routers.length" :value="null">No routers found</option>
-                    <option v-for="routerItem in store.routers" :key="routerItem.id" :value="routerItem.id">
+                    <option v-for="routerItem in store.routers" :key="routerItem.uid" :value="routerItem.uid">
                         {{ routerItem.name || routerItem.ip_address }}
                     </option>
                 </select>

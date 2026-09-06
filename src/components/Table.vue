@@ -45,6 +45,22 @@ const props = defineProps({
     enableActions: {
         type: Boolean,
         default: false
+    },
+    editLabel: {
+        type: String,
+        default: 'Edit'
+    },
+    deleteLabel: {
+        type: String,
+        default: 'Delete'
+    },
+    showEditAction: {
+        type: Boolean,
+        default: true
+    },
+    showDeleteAction: {
+        type: Boolean,
+        default: true
     }
 });
 
@@ -59,7 +75,7 @@ const tableData = computed(() => props.data ?? props.rows ?? []);
 const columnKeys = computed(() => props.columns.map((column) => String(column)));
 const activeFilterColumn = computed(() => props.filterColumn || columnKeys.value[0] || '');
 
-const getRowKey = (row, index) => row?.id ?? row?._id ?? row?.key ?? `${index}`;
+const getRowKey = (row, index) => row?.uid ?? row?.id ?? row?._id ?? row?.key ?? `${index}`;
 
 const formatCellValue = (column, value) => {
     if (column === 'online') {
@@ -322,8 +338,8 @@ watch(
                             </td>
                             <td v-if="enableActions" class="neo-data-table__actions-cell">
                                 <div class="neo-data-table__action-btns">
-                                    <button type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">Edit</button>
-                                    <button type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">Delete</button>
+                                    <button v-if="showEditAction" type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">{{ editLabel }}</button>
+                                    <button v-if="showDeleteAction" type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">{{ deleteLabel }}</button>
                                 </div>
                             </td>
                         </tr>
@@ -354,8 +370,8 @@ watch(
                             <span :class="getCellClass(column, row[column])">{{ formatCellValue(column, row[column]) }}</span>
                         </div>
                         <div v-if="enableActions" class="neo-mobile-card__actions">
-                            <button type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">Edit</button>
-                            <button type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">Delete</button>
+                            <button v-if="showEditAction" type="button" class="neo-action-btn neo-action-btn--edit" @click="emit('edit', row)">{{ editLabel }}</button>
+                            <button v-if="showDeleteAction" type="button" class="neo-action-btn neo-action-btn--delete" @click="emit('delete', row)">{{ deleteLabel }}</button>
                         </div>
                     </div>
                 </details>
