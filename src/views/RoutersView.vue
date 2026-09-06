@@ -132,7 +132,8 @@ const confirmDelete = async () => {
 
         <Modal :show="showResult" @close="showResult = false">
             <h3 class="neo-modal-heading">One-time onboarding bundle</h3>
-            <p><strong>1.</strong> Create this L2TP peer on the control server/RADIUS before running the script.</p>
+            <p v-if="onboardingResult?.l2tp_peer?.provisioned"><strong>1.</strong> The L2TP peer was created automatically with tunnel address <code>{{ onboardingResult?.l2tp_peer?.ip_address }}</code>.</p>
+            <p v-else><strong>1.</strong> Create this L2TP peer on the control server before running the script.</p>
             <p><code>{{ onboardingResult?.l2tp_peer?.username }}</code></p>
             <p><code>{{ onboardingResult?.l2tp_peer?.password }}</code></p>
             <p><strong>2.</strong> Import the script in RouterOS before {{ onboardingResult?.expires_at }}.</p>
