@@ -1,5 +1,5 @@
 <script setup>
-import { fetchActiveHotspotUsers, fetchActivePppoeUsers } from '@/lib/api';
+import { fetchActiveUsers } from '@/lib/api';
 import { ref, computed, onMounted, watch } from 'vue';
 import { Wifi, Users } from 'lucide-vue-next';
 import { useMainStore } from '@/stores/store';
@@ -16,8 +16,9 @@ const selectedRouterId = computed({
 const activeTab = ref('hotspot'); // 'hotspot' | 'pppoe'
 
 // ── Active user data ─────────────────────────────────────────────
-const hotspotData = ref(null);   // full response object
-const pppoeData = ref(null);
+const activeData = ref(null);
+const hotspotData = computed(() => activeData.value);
+const pppoeData = computed(() => activeData.value);
 
 const hotspotLoading = ref(false);
 const pppoeLoading = ref(false);
@@ -27,33 +28,29 @@ const hotspotError = ref('');
 const pppoeError = ref('');
 
 const loadHotspot = async () => {
-    if (!selectedRouterId.value) return;
-    hotspotLoading.value = true;
-    hotspotError.value = '';
-    try {
-        hotspotData.value = await fetchActiveHotspotUsers(selectedRouterId.value);
-    } catch (e) {
-        hotspotError.value = e.response?.data?.detail || 'Failed to load hotspot active users.';
-    } finally {
-        hotspotLoading.value = false;
-    }
+    await refresh();
 };
 
 const loadPppoe = async () => {
-    if (!selectedRouterId.value) return;
-    pppoeLoading.value = true;
-    pppoeError.value = '';
-    try {
-        pppoeData.value = await fetchActivePppoeUsers(selectedRouterId.value);
-    } catch (e) {
-        pppoeError.value = e.response?.data?.detail || 'Failed to load PPPoE active users.';
-    } finally {
-        pppoeLoading.value = false;
-    }
+    await refresh();
 };
 
 const refresh = async () => {
-    await Promise.all([loadHotspot(), loadPppoe()]);
+    if (!selectedRouterId.value || hotspotLoading.value) return;
+    hotspotLoading.value = true;
+    pppoeLoading.value = true;
+    hotspotError.value = '';
+    pppoeError.value = '';
+    try {
+        activeData.value = await fetchActiveUsers(selectedRouterId.value);
+    } catch (e) {
+        const message = e.response?.data?.detail || 'Failed to load active users.';
+        hotspotError.value = message;
+        pppoeError.value = message;
+    } finally {
+        hotspotLoading.value = false;
+        pppoeLoading.value = false;
+    }
 };
 
 // Reload whenever the selected router changes
@@ -80,8 +77,8 @@ onMounted(async () => {
 });
 
 // ── Computed helpers ─────────────────────────────────────────────
-const hotspotRows = computed(() => hotspotData.value?.hotspot_active ?? []);
-const pppoeRows = computed(() => pppoeData.value?.pppoe_active ?? []);
+const hotspotRows = computed(() => activeData.value?.hotspot ?? []);
+const pppoeRows = computed(() => activeData.value?.pppoe ?? []);
 
 const hotspotColumns = computed(() =>
     hotspotRows.value.length ? Object.keys(hotspotRows.value[0]) : []

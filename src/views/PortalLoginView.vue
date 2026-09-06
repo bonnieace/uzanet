@@ -1,24 +1,25 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Wifi, Zap, Shield, Gauge, CreditCard, Lock, HelpCircle, Globe, Timer, Calendar, CalendarRange, CalendarDays, Star, Ticket, AlertTriangle, User, ArrowRight, X, Smartphone } from 'lucide-vue-next';
+import { errorMessage, fetchPaymentStatus, fetchPortal, initiatePortalPayment } from '@/lib/api';
 
 const route = useRoute();
-
-const plans = [
-        { id: '1h', name: '1 Hour',  amount: 10,   label: 'LITE ACCESS',     sub: 'Instant Activation', icon: 'timer',              featured: false },
-    { id: '1d', name: '1 Day',   amount: 50,   label: 'DAILY PASS',      sub: 'Popular Choice',     icon: 'today',              featured: false },
-    { id: '3d', name: '3 Days',  amount: 150,  label: 'WEEKEND BUNDLE',  sub: 'Great Value',        icon: 'date_range',         featured: false },
-    { id: '7d', name: '7 Days',  amount: 300,  label: 'WEEKLY PRO',      sub: 'Heavy User',         icon: 'calendar_view_week', featured: false },
-    { id: '1m', name: '1 Month', amount: 1000, label: 'ULTIMATE',        sub: 'Best Savings',       icon: 'star',               featured: true  },
-];
-
 const planIconMap = { timer: Timer, today: Calendar, date_range: CalendarRange, calendar_view_week: CalendarDays, star: Star };
-
+const plans = ref([]);
+const portal = ref(null);
+const portalLoading = ref(true);
+const portalError = ref('');
+const portalNotice = ref('');
 const selectedPlan = ref(null);
 const phoneNumber = ref('');
+const customerReference = ref('');
 const submittingPayment = ref(false);
 const paymentError = ref('');
+const paymentSuccess = ref('');
+const paymentProgress = ref('');
+let componentActive = true;
+let paymentAttempt = 0;
 
 const ticketUsername = ref('');
 const ticketPassword = ref('');
@@ -26,25 +27,89 @@ const ticketPassword = ref('');
 const mac = computed(() => String(route.query.mac || ''));
 const ip = computed(() => String(route.query.ip || ''));
 const linkOrig = computed(() => String(route.query['link-orig'] || ''));
-const linkLogin = computed(() => String(route.query['link-login'] || route.query['link-login-only'] || ''));
+const rawLinkLogin = computed(() => String(route.query['link-login-only'] || route.query['link-login'] || ''));
+const portalSlug = computed(() => String(route.params.portalSlug || route.query.portal || import.meta.env.VITE_DEFAULT_PORTAL_SLUG || ''));
+
+const isPrivateIpv4 = (hostname) => {
+    const octets = hostname.split('.').map(Number);
+    if (octets.length !== 4 || octets.some((value) => !Number.isInteger(value) || value < 0 || value > 255)) return false;
+    return octets[0] === 10 || (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) || (octets[0] === 192 && octets[1] === 168);
+};
+
+const linkLogin = computed(() => {
+    if (!rawLinkLogin.value || rawLinkLogin.value.length > 2048) return '';
+    try {
+        const url = new URL(rawLinkLogin.value, window.location.href);
+        const configuredHosts = String(import.meta.env.VITE_ALLOWED_HOTSPOT_HOSTS || '').split(',').map((item) => item.trim()).filter(Boolean);
+        const trustedHost = url.host === window.location.host || isPrivateIpv4(url.hostname)
+            || url.hostname.endsWith('.local') || url.hostname.endsWith('.lan') || configuredHosts.includes(url.host);
+        if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || !trustedHost) return '';
+        return url.toString();
+    } catch {
+        return '';
+    }
+});
 
 const canSubmitLogin = computed(() => !!linkLogin.value);
 
+const formatDuration = (minutes) => {
+    if (minutes < 60) return `${minutes} minutes`;
+    if (minutes < 1440) return `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+    const days = minutes / 1440;
+    return `${days} day${days === 1 ? '' : 's'}`;
+};
+
+const planIcon = (minutes) => minutes <= 60 ? 'timer' : minutes <= 1440 ? 'today' : minutes <= 4320 ? 'date_range' : minutes < 43200 ? 'calendar_view_week' : 'star';
+
+const loadPortal = async () => {
+    if (!portalSlug.value) {
+        portalError.value = 'This portal link is missing its ISP identifier.';
+        portalLoading.value = false;
+        return;
+    }
+    try {
+        portal.value = await fetchPortal(portalSlug.value);
+        plans.value = portal.value.packages.map((item, index, all) => ({
+            ...item,
+            id: item.uid,
+            amount: Number(item.price),
+            label: item.service_type === 'pppoe' ? 'PPPOE RENEWAL' : 'HOTSPOT ACCESS',
+            sub: item.rate_limit || 'Instant activation',
+            icon: planIcon(item.validity_minutes),
+            featured: index === all.length - 1,
+        }));
+    } catch (error) {
+        portalError.value = errorMessage(error, 'This ISP portal is unavailable.');
+    } finally {
+        portalLoading.value = false;
+    }
+};
+
+onMounted(loadPortal);
+onUnmounted(() => { componentActive = false; });
+
 const openPlanPopup = (plan) => {
     paymentError.value = '';
+    paymentSuccess.value = '';
+    paymentProgress.value = '';
     phoneNumber.value = '';
+    customerReference.value = '';
     selectedPlan.value = plan;
 };
 
 const closePlanPopup = () => {
+    paymentAttempt += 1;
     selectedPlan.value = null;
     paymentError.value = '';
     phoneNumber.value = '';
+    customerReference.value = '';
     submittingPayment.value = false;
+    paymentSuccess.value = '';
+    paymentProgress.value = '';
 };
 
 const normalizePhoneNumber = (value) => {
-    const cleaned = value.replace(/\s+/g, '');
+    const cleaned = value.replace(/\D/g, '');
 
     if (cleaned.startsWith('0')) {
         if (cleaned.length !== 10) {
@@ -65,15 +130,32 @@ const normalizePhoneNumber = (value) => {
 
 const submitPortalLogin = () => {
     if (!canSubmitLogin.value) return;
-
-    const params = new URLSearchParams({
-        username: ticketUsername.value,
-        password: ticketPassword.value,
-        dst: 'https://uzanet.co.ke',
-        popup: 'true',
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = linkLogin.value;
+    const values = { username: ticketUsername.value, password: ticketPassword.value, dst: linkOrig.value || window.location.origin, popup: 'true' };
+    Object.entries(values).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
     });
+    document.body.appendChild(form);
+    form.submit();
+};
 
-    window.location.href = `${linkLogin.value}?${params.toString()}`;
+const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const pollPayment = async (initial, attempt) => {
+    const deadline = Math.min(new Date(initial.expires_at).getTime(), Date.now() + 16 * 60_000);
+    let result = initial;
+    while (componentActive && attempt === paymentAttempt && Date.now() < deadline && ['created', 'pending', 'provisioning'].includes(result.status)) {
+        paymentProgress.value = result.status === 'provisioning' ? 'Payment received. Activating access…' : 'Waiting for payment confirmation…';
+        await wait(2500);
+        result = await fetchPaymentStatus(initial.payment_id, initial.status_token);
+    }
+    return result;
 };
 
 const submitPayment = async () => {
@@ -89,42 +171,47 @@ const submitPayment = async () => {
         return;
     }
 
-    if (!canSubmitLogin.value) {
-        paymentError.value = 'Missing link-login query parameter. Unable to complete captive login.';
+    if (selectedPlan.value.service_type === 'pppoe' && !customerReference.value.trim()) {
+        paymentError.value = 'Enter the PPPoE username to renew.';
         return;
     }
 
     submittingPayment.value = true;
+    paymentSuccess.value = '';
+    const attempt = ++paymentAttempt;
 
     try {
-        const endpoint = `https://api.uzanet.co.ke/stkpush/initiate?phone_number=${encodeURIComponent(processedPhoneNumber)}&amount=${selectedPlan.value.amount}&router_id=2`;
-
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ phone_number: processedPhoneNumber }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to initiate STK push.');
+        const request = {
+            package_uid: selectedPlan.value.uid,
+            phone_number: processedPhoneNumber,
+            ...(selectedPlan.value.service_type === 'pppoe' ? { customer_reference: customerReference.value.trim() } : {}),
+        };
+        const idempotencyKey = globalThis.crypto?.randomUUID?.() || `portal-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const initial = await initiatePortalPayment(portalSlug.value, request, idempotencyKey);
+        const result = await pollPayment(initial, attempt);
+        if (!componentActive || attempt !== paymentAttempt) return;
+        if (result.status !== 'provisioned') {
+            throw new Error(result.message || (result.status === 'pending' ? 'Payment confirmation timed out. Check the prompt and try status again.' : 'Payment was not completed.'));
         }
-
-        const data = await response.json();
-
-        if (!data?.credentials?.username || !data?.credentials?.password) {
-            throw new Error('Payment succeeded but no hotspot credentials were returned.');
+        if (selectedPlan.value.service_type === 'pppoe') {
+            paymentSuccess.value = `Payment confirmed. PPPoE account ${result.account || customerReference.value} is active.`;
+            paymentProgress.value = '';
+            return;
         }
-
-        ticketUsername.value = data.credentials.username;
-        ticketPassword.value = data.credentials.password;
-
-        closePlanPopup();
-        submitPortalLogin();
+        if (!result.credentials?.username || !result.credentials?.password) throw new Error('Access was activated, but credentials are no longer available. Contact support with the payment ID.');
+        ticketUsername.value = result.credentials.username;
+        ticketPassword.value = result.credentials.password;
+        if (canSubmitLogin.value) {
+            closePlanPopup();
+            submitPortalLogin();
+        } else {
+            paymentSuccess.value = `Access active. Username: ${ticketUsername.value} — Password: ${ticketPassword.value}`;
+            paymentProgress.value = '';
+        }
     } catch (err) {
-        paymentError.value = err.message || 'Unable to complete payment. Please try again.';
-        submittingPayment.value = false;
+        paymentError.value = errorMessage(err, err.message || 'Unable to complete payment. Please try again.');
+    } finally {
+        if (attempt === paymentAttempt) submittingPayment.value = false;
     }
 };
 </script>
@@ -136,7 +223,7 @@ const submitPayment = async () => {
             <div class="sidebar-content">
                 <div class="sidebar-logo-row">
                     <Wifi :size="32" class="sidebar-wifi-icon" />
-                    <span class="sidebar-brand-name">Uzanet Hotspot</span>
+                    <span class="sidebar-brand-name">{{ portal?.name || 'Uzanet Hotspot' }}</span>
                 </div>
                 <h2 class="sidebar-heading">Fast.<br>Reliable.<br>Instant.</h2>
                 <p class="sidebar-tagline">Get online in seconds. Pay easily with M-Pesa and browse at full speed — no fuss, no waiting.</p>
@@ -180,7 +267,7 @@ const submitPayment = async () => {
                 <div class="portal-topbar-inner">
                     <div class="topbar-brand">
                         <Wifi :size="22" class="topbar-wifi" />
-                        <span class="topbar-title">Uzanet Hotspot</span>
+                        <span class="topbar-title">{{ portal?.name || 'Uzanet Hotspot' }}</span>
                     </div>
                     <div class="topbar-actions">
                         <button class="topbar-icon-btn" type="button" aria-label="Help">
@@ -196,6 +283,11 @@ const submitPayment = async () => {
             <!-- Scrollable content -->
             <main class="portal-scroll-pane">
                 <div class="portal-content-inner">
+                    <p v-if="portalLoading" class="portal-warning">Loading available packages…</p>
+                    <p v-else-if="portalError" class="portal-warning">
+                        <AlertTriangle :size="18" class="warn-icon" /> {{ portalError }}
+                    </p>
+                    <p v-if="portalNotice" class="field-hint">{{ portalNotice }}</p>
                     <!-- Hero Banner -->
                     <div class="hero-banner">
                         <div class="hero-text">
@@ -208,7 +300,7 @@ const submitPayment = async () => {
                     <section class="portal-section">
                         <div class="section-header">
                             <CreditCard :size="20" class="section-icon" />
-                            <h2 class="section-title">Choose option to pay with M-Pesa</h2>
+                            <h2 class="section-title">Choose an internet package</h2>
                         </div>
                         <div class="plan-list">
                             <button
@@ -250,7 +342,7 @@ const submitPayment = async () => {
 
                         <p v-if="!canSubmitLogin" class="portal-warning">
                             <AlertTriangle :size="18" class="warn-icon" />
-                            Missing required query parameter: link-login.
+                            The captive-router login address is missing or not trusted. Payment can still activate access, but automatic login is disabled.
                         </p>
 
                         <form @submit.prevent="submitPortalLogin" class="ticket-form">
@@ -303,7 +395,7 @@ const submitPayment = async () => {
                         <a href="#" class="footer-link">Privacy Policy</a>
                         <a href="#" class="footer-link">Contact Support</a>
                     </div>
-                    <p class="footer-copy">© 2024 Uzanet Hotspot. Powered by Velocity.</p>
+                    <p class="footer-copy">© {{ new Date().getFullYear() }} {{ portal?.name || 'Uzanet Hotspot' }}.</p>
                     <div v-if="mac || ip" class="footer-meta">
                         <span v-if="mac"><strong>MAC:</strong> {{ mac }}</span>
                         <span v-if="ip"><strong>IP:</strong> {{ ip }}</span>
@@ -331,7 +423,7 @@ const submitPayment = async () => {
 
                     <div class="modal-body">
                         <div class="modal-field">
-                            <label class="form-label">M-PESA NUMBER</label>
+                            <label class="form-label">PAYMENT PHONE NUMBER</label>
                             <div class="input-wrap">
                                 <Smartphone :size="18" class="input-icon-ms" />
                                 <input
@@ -342,26 +434,36 @@ const submitPayment = async () => {
                                     :disabled="submittingPayment"
                                 />
                             </div>
-                            <p class="field-hint">Enter your M-Pesa phone number to pay</p>
+                            <p class="field-hint">Enter the phone number that will approve the payment prompt</p>
+                        </div>
+
+                        <div v-if="selectedPlan.service_type === 'pppoe'" class="modal-field">
+                            <label class="form-label">PPPOE USERNAME</label>
+                            <div class="input-wrap">
+                                <User :size="18" class="input-icon-ms" />
+                                <input v-model="customerReference" type="text" class="form-input" :disabled="submittingPayment" />
+                            </div>
                         </div>
 
                         <div class="summary-grid">
                             <div class="summary-cell">
                                 <p class="summary-label">Duration</p>
-                                <p class="summary-value">{{ selectedPlan.id === '1h' ? '60 Minutes' : selectedPlan.name }}</p>
+                                <p class="summary-value">{{ formatDuration(selectedPlan.validity_minutes) }}</p>
                             </div>
                             <div class="summary-cell">
                                 <p class="summary-label">Speed</p>
-                                <p class="summary-value">Unlimited</p>
+                                <p class="summary-value">{{ selectedPlan.rate_limit || 'Profile managed' }}</p>
                             </div>
                         </div>
 
                         <p v-if="paymentError" class="modal-error">{{ paymentError }}</p>
+                        <p v-if="paymentSuccess" class="field-hint">{{ paymentSuccess }}</p>
+                        <p v-if="paymentProgress" class="field-hint">{{ paymentProgress }}</p>
 
                         <div class="modal-actions">
                             <button type="button" class="pay-btn" :disabled="submittingPayment" @click="submitPayment">
                                 <span v-if="submittingPayment" class="btn-loader" aria-hidden="true"></span>
-                                {{ submittingPayment ? 'Submitting...' : 'Submit Payment' }}
+                                {{ submittingPayment ? 'Processing…' : 'Submit Payment' }}
                                 <ArrowRight v-if="!submittingPayment" :size="18" />
                             </button>
                             <button type="button" class="cancel-btn" @click="closePlanPopup">
@@ -372,7 +474,7 @@ const submitPayment = async () => {
 
                     <div class="modal-trust">
                         <Lock :size="14" class="trust-icon" />
-                        <span class="trust-text">SECURE MPESA GATEWAY</span>
+                        <span class="trust-text">SECURE {{ (portal?.payment_provider || 'PAYMENT').toUpperCase() }} GATEWAY</span>
                     </div>
                 </div>
             </div>

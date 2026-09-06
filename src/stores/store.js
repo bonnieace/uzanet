@@ -1,88 +1,84 @@
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import api from '@/lib/api';
+import { fetchMe, fetchRouters, logoutOperator } from '@/lib/api';
 
 export const useMainStore = defineStore('main', () => {
     const showModal = ref(false);
-    const isLoading= ref(true);
+    const isLoading = ref(false);
     const sidebarExpanded = ref(true);
-    const filteredData = ref([]); // Holds the filtered data
+    const filteredData = ref([]);
     const routers = ref([]);
     const routersLoading = ref(false);
     const routerRefreshKey = ref(0);
+    const user = ref(null);
+    const authChecked = ref(false);
 
-    // Auth state — persisted in localStorage
-    const token = ref(localStorage.getItem('auth_token') || null);
-    const isAuthenticated = computed(() => !!token.value);
+    const token = ref(localStorage.getItem('auth_token'));
+    const isAuthenticated = computed(() => Boolean(token.value && user.value));
+    const selectedRouterUid = ref(localStorage.getItem('selected_router_uid'));
+    // Compatibility alias while the existing views are migrated from numeric IDs.
+    const selectedRouterId = selectedRouterUid;
 
-    // Selected router — persisted in localStorage
-    const selectedRouterId = ref(
-        localStorage.getItem('selected_router_id')
-            ? Number(localStorage.getItem('selected_router_id'))
-            : null
-    );
-
-    const setSelectedRouterId = (id) => {
-        selectedRouterId.value = id;
-        if (id !== null && id !== undefined) {
-            localStorage.setItem('selected_router_id', String(id));
-        } else {
-            localStorage.removeItem('selected_router_id');
-        }
+    const setSelectedRouterId = (uid) => {
+        selectedRouterUid.value = uid || null;
+        filteredData.value = [];
+        if (uid) localStorage.setItem('selected_router_uid', uid);
+        else localStorage.removeItem('selected_router_uid');
     };
 
     const loadRouters = async ({ force = false } = {}) => {
-        if (routersLoading.value) return;
-        if (!force && routers.value.length) return;
-
+        if (routersLoading.value || (!force && routers.value.length)) return;
         routersLoading.value = true;
         try {
-            const res = await api.get('/routers');
-            routers.value = res.data || [];
-
-            if (!selectedRouterId.value && routers.value.length) {
-                setSelectedRouterId(routers.value[0].id);
-            }
-
-            if (
-                selectedRouterId.value &&
-                !routers.value.some((router) => router.id === selectedRouterId.value)
-            ) {
-                setSelectedRouterId(routers.value[0]?.id ?? null);
+            routers.value = await fetchRouters();
+            if (!selectedRouterUid.value && routers.value.length) setSelectedRouterId(routers.value[0].uid);
+            if (selectedRouterUid.value && !routers.value.some((item) => item.uid === selectedRouterUid.value)) {
+                setSelectedRouterId(routers.value[0]?.uid || null);
             }
         } finally {
             routersLoading.value = false;
         }
     };
 
-    const requestRouterRefresh = () => {
-        routerRefreshKey.value += 1;
+    const bootstrapAuth = async () => {
+        if (authChecked.value) return isAuthenticated.value;
+        if (!token.value) {
+            authChecked.value = true;
+            return false;
+        }
+        try {
+            user.value = await fetchMe();
+            return true;
+        } catch {
+            clearSession();
+            return false;
+        } finally {
+            authChecked.value = true;
+        }
     };
 
-    const login = (newToken) => {
+    const login = async (newToken) => {
         token.value = newToken;
         localStorage.setItem('auth_token', newToken);
+        user.value = await fetchMe();
+        authChecked.value = true;
     };
 
-    const logout = () => {
+    const clearSession = () => {
         token.value = null;
+        user.value = null;
+        routers.value = [];
+        authChecked.value = true;
         localStorage.removeItem('auth_token');
+        setSelectedRouterId(null);
     };
 
-    const setLoading = (value) => {
-        isLoading.value = value;
-    };
-    
-    const openModal = () => {
-        showModal.value = true;
-    };
-    
-    const closeModal = () => {
-        showModal.value = false;
-    };
-    // Handle the filtered list update from the Search component
-    const handleFilteredListUpdate = (updatedList) => {
-        filteredData.value = updatedList;
+    const logout = async () => {
+        try {
+            if (token.value) await logoutOperator();
+        } finally {
+            clearSession();
+        }
     };
 
     return {
@@ -93,17 +89,20 @@ export const useMainStore = defineStore('main', () => {
         routers,
         routersLoading,
         token,
+        user,
         isAuthenticated,
+        selectedRouterUid,
         selectedRouterId,
         routerRefreshKey,
         setSelectedRouterId,
         loadRouters,
-        requestRouterRefresh,
+        bootstrapAuth,
+        requestRouterRefresh: () => { routerRefreshKey.value += 1; },
         login,
         logout,
-        handleFilteredListUpdate,
-        setLoading,
-        openModal,
-        closeModal,
+        handleFilteredListUpdate: (list) => { filteredData.value = list; },
+        setLoading: (value) => { isLoading.value = value; },
+        openModal: () => { showModal.value = true; },
+        closeModal: () => { showModal.value = false; },
     };
 });

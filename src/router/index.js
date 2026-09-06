@@ -10,6 +10,7 @@ import LoginView from '@/views/LoginView.vue';
 import RoutersView from '@/views/RoutersView.vue';
 import PortalLoginView from '@/views/PortalLoginView.vue';
 import ActiveUsersView from '@/views/ActiveUsersView.vue';
+import { useMainStore } from '@/stores/store';
 
 
 const router = createRouter({
@@ -18,6 +19,12 @@ const router = createRouter({
     {
       path: '/login',
       name: 'PortalLogin',
+      component: PortalLoginView,
+      meta: { public: true, hideShell: true },
+    },
+    {
+      path: '/portal/:portalSlug',
+      name: 'Portal',
       component: PortalLoginView,
       meta: { public: true, hideShell: true },
     },
@@ -75,15 +82,13 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('auth_token');
-  if (!isAuthenticated && !to.meta.public) {
-    next({ name: 'Login' });
-  } else if (isAuthenticated && to.name === 'Login') {
-    next({ name: 'Home' });
-  } else {
-    next();
-  }
+router.beforeEach(async (to) => {
+  if (to.meta.public && to.name !== 'Login') return true;
+  const store = useMainStore();
+  const authenticated = await store.bootstrapAuth();
+  if (!authenticated && !to.meta.public) return { name: 'Login', query: { redirect: to.fullPath } };
+  if (authenticated && to.name === 'Login') return { name: 'Home' };
+  return true;
 });
 
 export default router

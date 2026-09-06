@@ -1,5 +1,5 @@
 <script setup>
-import api, { fetchActiveHotspotUsers, fetchActivePppoeUsers, fetchLogs, fetchPayments } from '@/lib/api';
+import { fetchActiveUsers, fetchLogs, fetchPayments } from '@/lib/api';
 import { ref,onMounted,computed, watch } from 'vue';
 import StatCard from '@/components/StatCard.vue';
 import { Wallet, CalendarDays, UserCheck, Wifi, Activity } from 'lucide-vue-next';
@@ -31,12 +31,9 @@ const loadActiveUsers = async () => {
     activeUsersLoading.value = true;
     activeUsersError.value = '';
     try {
-        const [hotspotRes, pppoeRes] = await Promise.all([
-            fetchActiveHotspotUsers(selectedRouterId.value),
-            fetchActivePppoeUsers(selectedRouterId.value),
-        ]);
-        hotspotActiveCount.value = (hotspotRes.hotspot_active || []).length;
-        pppoeActiveCount.value = (pppoeRes.pppoe_active || []).length;
+        const active = await fetchActiveUsers(selectedRouterId.value);
+        hotspotActiveCount.value = (active.hotspot || []).length;
+        pppoeActiveCount.value = (active.pppoe || []).length;
     } catch (e) {
         activeUsersError.value = e.response?.data?.detail || 'Failed to load active user counts.';
         hotspotActiveCount.value = null;
@@ -109,7 +106,7 @@ const dailytotalearnings = computed(() => {
         const paymentDate = new Date(payment.created_at);
         const today = new Date();
         if (paymentDate.toDateString() === today.toDateString()) {
-            return total + payment.amount;
+            return total + Number(payment.amount);
         }
         return total;
     }, 0);
@@ -120,7 +117,7 @@ const monthlytotalearnings = computed(() => {
         const paymentDate = new Date(payment.created_at);
         const today = new Date();
         if (paymentDate.getMonth() === today.getMonth() && paymentDate.getFullYear() === today.getFullYear()) {
-            return total + payment.amount;
+            return total + Number(payment.amount);
         }
         return total;
     }, 0);
@@ -131,7 +128,7 @@ const dailyppp = computed(() => {
         const paymentDate = new Date(payment.created_at);
         const today = new Date();
         if (paymentDate.toDateString() === today.toDateString() && payment.user_type === 'pppoe') {
-            return total + payment.amount;
+            return total + Number(payment.amount);
         }
         return total;
     }, 0);
@@ -142,7 +139,7 @@ const dailyhotspot = computed(() => {
         const paymentDate = new Date(payment.created_at);
         const today = new Date();
         if (paymentDate.toDateString() === today.toDateString() && payment.user_type === 'hotspot') {
-            return total + payment.amount;
+            return total + Number(payment.amount);
         }
         return total;
     }, 0);
@@ -153,7 +150,7 @@ const yesterdayEarnings = computed(() => {
     yesterday.setDate(yesterday.getDate() - 1);
     return payments.value.reduce((total, p) => {
         return new Date(p.created_at).toDateString() === yesterday.toDateString()
-            ? total + p.amount : total;
+            ? total + Number(p.amount) : total;
     }, 0);
 });
 
@@ -163,7 +160,7 @@ const lastMonthEarnings = computed(() => {
     const lmYear = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
     return payments.value.reduce((total, p) => {
         const d = new Date(p.created_at);
-        return d.getMonth() === lm && d.getFullYear() === lmYear ? total + p.amount : total;
+        return d.getMonth() === lm && d.getFullYear() === lmYear ? total + Number(p.amount) : total;
     }, 0);
 });
 
@@ -172,7 +169,7 @@ const yesterdayPPP = computed(() => {
     yesterday.setDate(yesterday.getDate() - 1);
     return payments.value.reduce((total, p) => {
         return new Date(p.created_at).toDateString() === yesterday.toDateString() && p.user_type === 'pppoe'
-            ? total + p.amount : total;
+            ? total + Number(p.amount) : total;
     }, 0);
 });
 
@@ -181,7 +178,7 @@ const yesterdayHotspot = computed(() => {
     yesterday.setDate(yesterday.getDate() - 1);
     return payments.value.reduce((total, p) => {
         return new Date(p.created_at).toDateString() === yesterday.toDateString() && p.user_type === 'hotspot'
-            ? total + p.amount : total;
+            ? total + Number(p.amount) : total;
     }, 0);
 });
 
