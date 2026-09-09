@@ -9,6 +9,7 @@ import PaymentView from '@/views/PaymentView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RoutersView from '@/views/RoutersView.vue';
 import PortalLoginView from '@/views/PortalLoginView.vue';
+import PortalLegacyRedirectView from '@/views/PortalLegacyRedirectView.vue';
 import ActiveUsersView from '@/views/ActiveUsersView.vue';
 import { useMainStore } from '@/stores/store';
 
@@ -31,7 +32,7 @@ const router = createRouter({
     {
       path: '/portal/:portalSlug',
       name: 'PortalLegacy',
-      component: PortalLoginView,
+      component: PortalLegacyRedirectView,
       meta: { public: true, hideShell: true },
     },
     {
