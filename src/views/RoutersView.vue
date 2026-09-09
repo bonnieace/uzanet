@@ -128,7 +128,7 @@ const confirmDelete = async () => {
 
         <Modal :show="store.showModal" @close="store.closeModal">
             <h3 class="neo-modal-heading">Onboard Router</h3>
-            <p>The generated script backs up the router and adds only Uzanet-managed L2TP/API objects.</p>
+            <p>The generated script backs up the router and adds only Uzanet-managed L2TP/API objects. If HotSpot is active, it also preserves the current login page before installing the ISP-qualified portal redirect.</p>
             <form @submit.prevent="startOnboarding">
                 <div class="form-group"><label>Router name*</label><input v-model="onboarding.name" required minlength="2" /></div>
                 <div class="form-group"><label>Portal slug*</label><input v-model="onboarding.portal_slug" required pattern="[a-z0-9][a-z0-9-]+[a-z0-9]" placeholder="town-branch" /></div>
@@ -146,15 +146,15 @@ const confirmDelete = async () => {
             <p><code>{{ onboardingResult?.l2tp_peer?.password }}</code></p>
             <p><strong>2.</strong> Import the script in RouterOS before {{ onboardingResult?.expires_at }}.</p>
             <template v-if="onboardingResult?.install_command">
-                <p>Paste this whole command into the router terminal. It downloads over HTTPS, imports the script, then removes the downloaded file.</p>
+                <p>Paste this whole command into the router terminal. It downloads over HTTPS, imports the script, then removes the downloaded file after a successful setup.</p>
                 <textarea class="script-output" aria-label="Router setup command" readonly :value="onboardingResult.install_command"></textarea>
                 <button class="submit-button" @click="copyCommand">Copy setup command</button>
-                <p>The download works once. Save the fallback RSC before closing; use it if the download or import is interrupted. The router needs a correct clock and trusted HTTPS certificates.</p>
+                <p>The download remains retryable until the router claims the setup or the token expires. Save the fallback RSC before closing; the router needs a correct clock and trusted HTTPS certificates.</p>
             </template>
             <p role="status">{{ copyMessage }}</p>
             <details><summary>Manual RSC fallback</summary><textarea class="script-output" aria-label="Router setup script" readonly :value="onboardingResult?.script"></textarea></details>
             <div class="action-row"><button class="submit-button" @click="copyScript">Copy RSC</button><button class="submit-button" @click="downloadScript">Download .rsc</button></div>
-            <p>The script saves a configuration backup. Existing hotspot HTML files are not replaced; update their redirect separately and check router status after setup.</p>
+            <p>The script saves a configuration backup. On an active HotSpot it preserves the current <code>login.html</code> as <code>login-pre-uzanet.txt</code>, replaces only the login redirect, and leaves all other HotSpot assets untouched.</p>
             <p>These peer credentials and the claim token are shown only in this response. Store them in your VPN/RADIUS secret manager.</p>
         </Modal>
 
