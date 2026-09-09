@@ -9,6 +9,7 @@ import PaymentView from '@/views/PaymentView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RoutersView from '@/views/RoutersView.vue';
 import PortalLoginView from '@/views/PortalLoginView.vue';
+import PortalLegacyRedirectView from '@/views/PortalLegacyRedirectView.vue';
 import ActiveUsersView from '@/views/ActiveUsersView.vue';
 import { useMainStore } from '@/stores/store';
 
@@ -23,9 +24,15 @@ const router = createRouter({
       meta: { public: true, hideShell: true },
     },
     {
-      path: '/portal/:portalSlug',
+      path: '/portal/:ispIdentifier/:portalSlug',
       name: 'Portal',
       component: PortalLoginView,
+      meta: { public: true, hideShell: true },
+    },
+    {
+      path: '/portal/:portalSlug',
+      name: 'PortalLegacy',
+      component: PortalLegacyRedirectView,
       meta: { public: true, hideShell: true },
     },
     {
