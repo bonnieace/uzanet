@@ -11,7 +11,7 @@ const store = useMainStore();
 const data = ref([]);
 const filtered = ref([]);
 const error = ref('');
-const onboarding = ref({ name: '', portal_slug: '', payment_provider: 'mpesa' });
+const onboarding = ref({ name: '', portal_slug: '', payment_provider: 'mpesa', replace_managed_tunnel: false });
 const onboardingResult = ref(null);
 const showResult = ref(false);
 const showEditModal = ref(false);
@@ -50,12 +50,13 @@ onMounted(loadRouters);
 
 const startOnboarding = async () => {
     error.value = '';
+    copyMessage.value = '';
     store.setLoading(true);
     try {
         onboardingResult.value = await beginRouterOnboarding(onboarding.value);
         store.closeModal();
         showResult.value = true;
-        onboarding.value = { name: '', portal_slug: '', payment_provider: 'mpesa' };
+        onboarding.value = { name: '', portal_slug: '', payment_provider: 'mpesa', replace_managed_tunnel: false };
         await loadRouters();
     } catch (submitError) {
         error.value = errorMessage(submitError, 'Unable to start router onboarding.');
@@ -64,7 +65,13 @@ const startOnboarding = async () => {
     }
 };
 
-const copyScript = async () => navigator.clipboard.writeText(onboardingResult.value?.script || '');
+const copyMessage = ref('');
+const copyText = async (value) => {
+    try { await navigator.clipboard.writeText(value || ''); copyMessage.value = 'Copied.'; }
+    catch { copyMessage.value = 'Copy unavailable. Select and copy the text below.'; }
+};
+const copyScript = () => copyText(onboardingResult.value?.script);
+const copyCommand = () => copyText(onboardingResult.value?.install_command);
 const downloadScript = () => {
     const blob = new Blob([onboardingResult.value?.script || ''], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
@@ -126,7 +133,8 @@ const confirmDelete = async () => {
                 <div class="form-group"><label>Router name*</label><input v-model="onboarding.name" required minlength="2" /></div>
                 <div class="form-group"><label>Portal slug*</label><input v-model="onboarding.portal_slug" required pattern="[a-z0-9][a-z0-9-]+[a-z0-9]" placeholder="town-branch" /></div>
                 <div class="form-group"><label>Payment provider*</label><select v-model="onboarding.payment_provider"><option value="mpesa">M-Pesa Direct</option><option value="kopokopo">Kopo Kopo</option></select></div>
-                <button type="submit" class="submit-button" :disabled="store.isLoading">Generate secure script</button>
+                <label><input v-model="onboarding.replace_managed_tunnel" type="checkbox" /> Replace an existing UzaNet-managed tunnel on this router (disconnects its previous UzaNet record).</label>
+                <button type="submit" class="submit-button" :disabled="store.isLoading">Generate setup command</button>
             </form>
         </Modal>
 
@@ -137,8 +145,16 @@ const confirmDelete = async () => {
             <p><code>{{ onboardingResult?.l2tp_peer?.username }}</code></p>
             <p><code>{{ onboardingResult?.l2tp_peer?.password }}</code></p>
             <p><strong>2.</strong> Import the script in RouterOS before {{ onboardingResult?.expires_at }}.</p>
-            <textarea class="script-output" readonly :value="onboardingResult?.script"></textarea>
-            <div class="action-row"><button class="submit-button" @click="copyScript">Copy</button><button class="submit-button" @click="downloadScript">Download .rsc</button></div>
+            <template v-if="onboardingResult?.install_command">
+                <p>Paste this whole command into the router terminal. It downloads over HTTPS, imports the script, then removes the downloaded file.</p>
+                <textarea class="script-output" aria-label="Router setup command" readonly :value="onboardingResult.install_command"></textarea>
+                <button class="submit-button" @click="copyCommand">Copy setup command</button>
+                <p>The download works once. Save the fallback RSC before closing; use it if the download or import is interrupted. The router needs a correct clock and trusted HTTPS certificates.</p>
+            </template>
+            <p role="status">{{ copyMessage }}</p>
+            <details><summary>Manual RSC fallback</summary><textarea class="script-output" aria-label="Router setup script" readonly :value="onboardingResult?.script"></textarea></details>
+            <div class="action-row"><button class="submit-button" @click="copyScript">Copy RSC</button><button class="submit-button" @click="downloadScript">Download .rsc</button></div>
+            <p>The script saves a configuration backup. Existing hotspot HTML files are not replaced; update their redirect separately and check router status after setup.</p>
             <p>These peer credentials and the claim token are shown only in this response. Store them in your VPN/RADIUS secret manager.</p>
         </Modal>
 

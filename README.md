@@ -34,3 +34,9 @@ npm run build
 Publish `dist/`. The committed `_redirects` file enables SPA deep links on Netlify, and `_headers` applies baseline browser security headers. Add every production API origin to the deployed Content Security Policy if it differs from `https://api.uzanet.co.ke`.
 
 Deploy the backend API changes before this frontend. After deployment, verify operator login/logout, router UUID selection, `.rsc` onboarding, plan creation, both subscriber types, both provider callbacks, and captive-login form submission on a real RouterOS 6 and 7 device.
+
+Router onboarding now offers **Copy setup command** and a manual RSC fallback.
+Deploy the backend with onboarding download support first; older backend responses
+still show the inline script. Downloads are single-use and expire with the bundle.
+The optional managed-tunnel replacement disconnects the previous UzaNet record;
+leave it off for ordinary onboarding. Hotspot HTML redirects require separate setup.
