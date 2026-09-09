@@ -23,8 +23,14 @@ const router = createRouter({
       meta: { public: true, hideShell: true },
     },
     {
-      path: '/portal/:portalSlug',
+      path: '/portal/:ispIdentifier/:portalSlug',
       name: 'Portal',
+      component: PortalLoginView,
+      meta: { public: true, hideShell: true },
+    },
+    {
+      path: '/portal/:portalSlug',
+      name: 'PortalLegacy',
       component: PortalLoginView,
       meta: { public: true, hideShell: true },
     },
