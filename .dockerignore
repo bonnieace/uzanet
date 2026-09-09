@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.github
+.vscode
+stitch_modern_ui_redesign
+*.log
+.env
+.env.*
+!.env.example
