@@ -18,6 +18,7 @@ const submittingPayment = ref(false);
 const paymentError = ref('');
 const paymentSuccess = ref('');
 const paymentProgress = ref('');
+const paymentStage = ref('idle');
 let componentActive = true;
 let paymentAttempt = 0;
 
@@ -51,6 +52,52 @@ const linkLogin = computed(() => {
 });
 
 const canSubmitLogin = computed(() => !!linkLogin.value);
+
+const paymentStageContent = {
+    submitting: {
+        button: 'Sending M-Pesa prompt…',
+        message: 'Securely contacting M-Pesa. Keep this window open.',
+    },
+    created: {
+        button: 'Preparing payment prompt…',
+        message: 'Your payment request has been created.',
+    },
+    pending: {
+        button: 'Confirm payment on your phone',
+        message: 'Check your phone, enter your M-Pesa PIN, then keep this window open.',
+    },
+    paid: {
+        button: 'Activating your internet…',
+        message: 'Payment received. We are preparing your internet access.',
+    },
+    provisioning: {
+        button: 'Activating your internet…',
+        message: 'Payment received. We are preparing your internet access.',
+    },
+};
+
+const paymentButtonText = computed(() => submittingPayment.value
+    ? (paymentStageContent[paymentStage.value]?.button || 'Checking payment status…')
+    : 'Submit Payment');
+
+const updatePaymentProgress = (payment) => {
+    const nextStage = paymentStageContent[payment.status] ? payment.status : 'pending';
+    paymentStage.value = nextStage;
+    paymentProgress.value = paymentStageContent[nextStage].message;
+};
+
+const terminalPaymentMessage = (payment) => {
+    if (['created', 'pending', 'paid', 'provisioning'].includes(payment.status)) {
+        return 'Payment confirmation is taking longer than expected. If money was deducted, do not pay again—contact your ISP with the payment reference.';
+    }
+    if (payment.status === 'provisioning_failed') {
+        return 'Payment was received, but access activation needs attention. Do not pay again—contact your ISP with the payment reference.';
+    }
+    if (payment.status === 'manual_review') {
+        return 'This payment needs review. Do not pay again—contact your ISP with the payment reference.';
+    }
+    return 'Payment was not completed. If money was deducted, contact your ISP before making another payment.';
+};
 
 const formatDuration = (minutes) => {
     if (minutes < 60) return `${minutes} minutes`;
@@ -92,6 +139,7 @@ const openPlanPopup = (plan) => {
     paymentError.value = '';
     paymentSuccess.value = '';
     paymentProgress.value = '';
+    paymentStage.value = 'idle';
     phoneNumber.value = '';
     customerReference.value = '';
     selectedPlan.value = plan;
@@ -106,6 +154,7 @@ const closePlanPopup = () => {
     submittingPayment.value = false;
     paymentSuccess.value = '';
     paymentProgress.value = '';
+    paymentStage.value = 'idle';
 };
 
 const normalizePhoneNumber = (value) => {
@@ -150,10 +199,11 @@ const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolv
 const pollPayment = async (initial, attempt) => {
     const deadline = Math.min(new Date(initial.expires_at).getTime(), Date.now() + 16 * 60_000);
     let result = initial;
-    while (componentActive && attempt === paymentAttempt && Date.now() < deadline && ['created', 'pending', 'provisioning'].includes(result.status)) {
-        paymentProgress.value = result.status === 'provisioning' ? 'Payment received. Activating access…' : 'Waiting for payment confirmation…';
+    updatePaymentProgress(result);
+    while (componentActive && attempt === paymentAttempt && Date.now() < deadline && ['created', 'pending', 'paid', 'provisioning'].includes(result.status)) {
         await wait(2500);
         result = await fetchPaymentStatus(initial.payment_id, initial.status_token);
+        updatePaymentProgress(result);
     }
     return result;
 };
@@ -178,6 +228,8 @@ const submitPayment = async () => {
 
     submittingPayment.value = true;
     paymentSuccess.value = '';
+    paymentStage.value = 'submitting';
+    paymentProgress.value = paymentStageContent.submitting.message;
     const attempt = ++paymentAttempt;
 
     try {
@@ -191,7 +243,7 @@ const submitPayment = async () => {
         const result = await pollPayment(initial, attempt);
         if (!componentActive || attempt !== paymentAttempt) return;
         if (result.status !== 'provisioned') {
-            throw new Error(result.message || (result.status === 'pending' ? 'Payment confirmation timed out. Check the prompt and try status again.' : 'Payment was not completed.'));
+            throw new Error(terminalPaymentMessage(result));
         }
         if (selectedPlan.value.service_type === 'pppoe') {
             paymentSuccess.value = `Payment confirmed. PPPoE account ${result.account || customerReference.value} is active.`;
@@ -210,6 +262,7 @@ const submitPayment = async () => {
         }
     } catch (err) {
         paymentError.value = errorMessage(err, err.message || 'Unable to complete payment. Please try again.');
+        paymentProgress.value = '';
     } finally {
         if (attempt === paymentAttempt) submittingPayment.value = false;
     }
@@ -283,8 +336,7 @@ const submitPayment = async () => {
             <!-- Scrollable content -->
             <main class="portal-scroll-pane">
                 <div class="portal-content-inner">
-                    <p v-if="portalLoading" class="portal-warning">Loading available packages…</p>
-                    <p v-else-if="portalError" class="portal-warning">
+                    <p v-if="portalError" class="portal-warning">
                         <AlertTriangle :size="18" class="warn-icon" /> {{ portalError }}
                     </p>
                     <p v-if="portalNotice" class="field-hint">{{ portalNotice }}</p>
@@ -303,6 +355,23 @@ const submitPayment = async () => {
                             <h2 class="section-title">Choose an internet package</h2>
                         </div>
                         <div class="plan-list">
+                            <div v-if="portalLoading" class="plans-loading" role="status" aria-live="polite">
+                                <div class="plans-loading-header">
+                                    <div class="package-loader-mark" aria-hidden="true">
+                                        <span class="package-loader-ring"></span>
+                                        <Wifi :size="22" />
+                                    </div>
+                                    <div>
+                                        <p class="plans-loading-title">Finding available packages</p>
+                                        <p class="plans-loading-copy">Connecting securely to your internet provider…</p>
+                                    </div>
+                                </div>
+                                <div v-for="item in 3" :key="item" class="plan-skeleton" aria-hidden="true">
+                                    <span class="skeleton-icon"></span>
+                                    <span class="skeleton-copy"><i></i><i></i></span>
+                                    <span class="skeleton-price"></span>
+                                </div>
+                            </div>
                             <button
                                 v-for="plan in plans"
                                 :key="plan.id"
@@ -323,6 +392,9 @@ const submitPayment = async () => {
                                     <p class="plan-sub" :class="{ 'plan-sub--featured': plan.featured }">{{ plan.sub }}</p>
                                 </div>
                             </button>
+                            <p v-if="!portalLoading && !portalError && !plans.length" class="plans-empty">
+                                No active internet packages are available right now.
+                            </p>
                         </div>
                     </section>
 
@@ -458,12 +530,21 @@ const submitPayment = async () => {
 
                         <p v-if="paymentError" class="modal-error">{{ paymentError }}</p>
                         <p v-if="paymentSuccess" class="field-hint">{{ paymentSuccess }}</p>
-                        <p v-if="paymentProgress" class="field-hint">{{ paymentProgress }}</p>
+                        <div v-if="paymentProgress" class="payment-progress" role="status" aria-live="polite">
+                            <div class="payment-progress-motion" aria-hidden="true">
+                                <span></span><span></span><span></span>
+                                <Smartphone :size="20" />
+                            </div>
+                            <div>
+                                <p class="payment-progress-title">{{ paymentButtonText }}</p>
+                                <p class="payment-progress-copy">{{ paymentProgress }}</p>
+                            </div>
+                        </div>
 
                         <div class="modal-actions">
                             <button type="button" class="pay-btn" :disabled="submittingPayment" @click="submitPayment">
                                 <span v-if="submittingPayment" class="btn-loader" aria-hidden="true"></span>
-                                {{ submittingPayment ? 'Processing…' : 'Submit Payment' }}
+                                {{ paymentButtonText }}
                                 <ArrowRight v-if="!submittingPayment" :size="18" />
                             </button>
                             <button type="button" class="cancel-btn" @click="closePlanPopup">
@@ -613,6 +694,70 @@ const submitPayment = async () => {
 
 /* ── Plan List ────────────────────────────────── */
 .plan-list { display: flex; flex-direction: column; gap: 10px; }
+.plans-loading {
+    padding: 18px;
+    border: 1px solid #dce9ff;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #f7faff, #eef5ff);
+    box-shadow: 0 10px 28px rgba(15, 42, 94, 0.07);
+}
+.plans-loading-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.package-loader-mark {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #fff;
+    color: #005ce6;
+    box-shadow: 0 8px 22px rgba(0, 76, 202, 0.12);
+}
+.package-loader-ring {
+    position: absolute;
+    inset: -4px;
+    border: 2px solid rgba(0, 98, 255, 0.28);
+    border-radius: 17px;
+    animation: loader-ring 1.7s ease-out infinite;
+}
+.plans-loading-title { margin: 0 0 3px; font-weight: 750; color: #0b1c30; }
+.plans-loading-copy { margin: 0; color: #657389; font-size: 0.8rem; line-height: 1.4; }
+.plan-skeleton {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 10px;
+    border-top: 1px solid rgba(194, 211, 237, 0.48);
+}
+.skeleton-icon, .skeleton-copy i, .skeleton-price {
+    display: block;
+    background: linear-gradient(100deg, #dce6f5 20%, #f8fbff 45%, #dce6f5 70%);
+    background-size: 220% 100%;
+    animation: skeleton-shimmer 1.45s ease-in-out infinite;
+}
+.skeleton-icon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; }
+.skeleton-copy { display: flex; flex: 1; flex-direction: column; gap: 8px; }
+.skeleton-copy i { height: 9px; border-radius: 999px; }
+.skeleton-copy i:first-child { width: 54%; }
+.skeleton-copy i:last-child { width: 78%; }
+.skeleton-price { width: 54px; height: 12px; border-radius: 999px; }
+.plans-empty {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid #dce9ff;
+    border-radius: 12px;
+    background: #f7faff;
+    color: #56647a;
+    text-align: center;
+    font-size: 0.875rem;
+}
+@keyframes loader-ring {
+    0% { opacity: 0.8; transform: scale(0.88); }
+    75%, 100% { opacity: 0; transform: scale(1.18); }
+}
+@keyframes skeleton-shimmer { to { background-position-x: -220%; } }
 .plan-row {
     display: flex;
     align-items: center;
@@ -913,6 +1058,43 @@ const submitPayment = async () => {
     font-size: 0.875rem;
     margin: 0;
 }
+.payment-progress {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid #cfe0ff;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f4f8ff, #edf5ff);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.payment-progress-motion {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: #fff;
+    color: #005ce6;
+    box-shadow: 0 7px 18px rgba(0, 76, 202, 0.12);
+}
+.payment-progress-motion span {
+    position: absolute;
+    inset: 4px;
+    border: 1.5px solid rgba(0, 98, 255, 0.34);
+    border-radius: 11px;
+    animation: payment-wave 1.8s ease-out infinite;
+}
+.payment-progress-motion span:nth-child(2) { animation-delay: 0.38s; }
+.payment-progress-motion span:nth-child(3) { animation-delay: 0.76s; }
+.payment-progress-title { margin: 0 0 3px; color: #0b1c30; font-size: 0.875rem; font-weight: 750; }
+.payment-progress-copy { margin: 0; color: #5f6f87; font-size: 0.76rem; line-height: 1.45; }
+@keyframes payment-wave {
+    0% { opacity: 0.7; transform: scale(0.72); }
+    80%, 100% { opacity: 0; transform: scale(1.28); }
+}
 .modal-actions { display: flex; flex-direction: column; gap: 10px; }
 .pay-btn {
     display: flex;
@@ -975,6 +1157,15 @@ const submitPayment = async () => {
     animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .package-loader-ring,
+    .skeleton-icon,
+    .skeleton-copy i,
+    .skeleton-price,
+    .payment-progress-motion span,
+    .btn-loader { animation: none; }
+}
 
 /* ── Modal Transition ─────────────────────────── */
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
