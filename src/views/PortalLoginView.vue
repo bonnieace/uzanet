@@ -587,9 +587,7 @@ const submitPayment = async () => {
 
 /* ── Top Bar ──────────────────────────────────── */
 .portal-topbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 50;
+    position: relative;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #f1f5f9;
@@ -599,23 +597,23 @@ const submitPayment = async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 64px;
-    padding: 0 24px;
+    height: 44px;
+    padding: 0 16px;
     max-width: 480px;
     margin: 0 auto;
 }
 .topbar-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-family: 'Manrope', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: #0f172a;
 }
 .topbar-wifi { color: #2563eb; }
-.topbar-actions { display: flex; gap: 12px; }
+.topbar-actions { display: flex; gap: 6px; }
 .topbar-icon-btn {
     background: none;
     border: none;
@@ -636,7 +634,7 @@ const submitPayment = async () => {
     flex-direction: column;
 }
 .portal-content-inner {
-    padding: 88px 24px 48px;
+    padding: 24px 24px 48px;
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
@@ -1285,14 +1283,9 @@ const submitPayment = async () => {
         overflow: hidden;
     }
 
-    /* Topbar is inline (not fixed) within the right pane */
-    .portal-topbar {
-        position: relative;
-        top: auto; left: auto; right: auto;
-    }
     .portal-topbar-inner {
         max-width: none;
-        padding: 0 48px;
+        padding: 0 32px;
     }
 
     /* Scrollable content */
