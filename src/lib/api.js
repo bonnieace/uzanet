@@ -52,6 +52,8 @@ export const beginRouterOnboarding = (data) => api.post('/routers/onboarding', d
 export const addRouter = (data) => api.post('/routers', data).then((response) => response.data);
 export const updateRouter = (routerUid, data) => api.patch(`/routers/${routerUid}`, data).then((response) => response.data);
 export const removeRouter = (routerUid) => api.delete(`/routers/${routerUid}`);
+export const refreshRouterPortal = (routerUid) =>
+    api.post(`/routers/${routerUid}/portal/refresh`).then((response) => response.data);
 
 export const fetchActiveUsers = (routerUid) =>
     api.get(`/routers/${routerUid}/active-users`).then((response) => response.data);

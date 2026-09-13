@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { beginRouterOnboarding, errorMessage, fetchRouterStatuses, fetchRouters, removeRouter, updateRouter } from '@/lib/api';
+import { beginRouterOnboarding, errorMessage, fetchRouterStatuses, fetchRouters, refreshRouterPortal, removeRouter, updateRouter } from '@/lib/api';
 import Table from '@/components/Table.vue';
 import Search from '@/components/search.vue';
 import Modal from '@/components/Modal.vue';
@@ -17,6 +17,9 @@ const showResult = ref(false);
 const showEditModal = ref(false);
 const editingUid = ref(null);
 const editData = ref({ name: '', ip_address: '', port: 8728, username: '', password: '', portal_slug: '', portal_enabled: true, payment_provider: 'mpesa' });
+const refreshingPortal = ref(false);
+const portalRefreshMessage = ref('');
+const portalRefreshError = ref('');
 const showDeleteConfirm = ref(false);
 const deletingRouter = ref(null);
 
@@ -93,6 +96,8 @@ const handleEditRequest = (row) => {
         portal_enabled: row.portal_enabled,
         payment_provider: row.payment_provider,
     };
+    portalRefreshMessage.value = '';
+    portalRefreshError.value = '';
     showEditModal.value = true;
 };
 
@@ -105,6 +110,22 @@ const saveEdit = async () => {
         await loadRouters();
     } catch (saveError) {
         error.value = errorMessage(saveError, 'Unable to update router.');
+    }
+};
+
+const refreshPortal = async () => {
+    if (!editingUid.value || refreshingPortal.value) return;
+    refreshingPortal.value = true;
+    portalRefreshMessage.value = '';
+    portalRefreshError.value = '';
+    try {
+        const result = await refreshRouterPortal(editingUid.value);
+        const count = result.files_updated || 0;
+        portalRefreshMessage.value = `Template v${result.template_version} refreshed on ${count} managed HotSpot page${count === 1 ? '' : 's'}.`;
+    } catch (refreshError) {
+        portalRefreshError.value = errorMessage(refreshError, 'Unable to refresh the captive portal.');
+    } finally {
+        refreshingPortal.value = false;
     }
 };
 
@@ -167,6 +188,15 @@ const confirmDelete = async () => {
                 <div class="form-row"><div class="form-group"><label>Provider</label><select v-model="editData.payment_provider"><option value="mpesa">M-Pesa</option><option value="kopokopo">Kopo Kopo</option></select></div><label><input v-model="editData.portal_enabled" type="checkbox" /> Public portal enabled</label></div>
                 <button class="submit-button" type="submit">Save changes</button>
             </form>
+            <section class="portal-refresh">
+                <h4>Managed captive portal</h4>
+                <p>Push the latest Uzanet transition or branding template to this router without re-onboarding. Only a Uzanet-managed <code>login.html</code> is replaced; its backup and RouterOS configuration stay untouched. Save portal setting changes first.</p>
+                <button class="submit-button" type="button" :disabled="refreshingPortal || !editData.portal_enabled" @click="refreshPortal">
+                    {{ refreshingPortal ? 'Refreshing captive portal…' : 'Refresh captive portal' }}
+                </button>
+                <p v-if="portalRefreshMessage" class="neo-success" role="status">{{ portalRefreshMessage }}</p>
+                <p v-if="portalRefreshError" class="neo-error" role="alert">{{ portalRefreshError }}</p>
+            </section>
         </Modal>
 
         <Modal :show="showDeleteConfirm" @close="showDeleteConfirm = false">
@@ -184,6 +214,9 @@ const confirmDelete = async () => {
 .script-output { width: 100%; min-height: 18rem; margin: 1rem 0; padding: .75rem; font-family: monospace; }
 .action-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
 .neo-error { padding: .75rem; border: 2px solid #dc2626; color: #b91c1c; font-weight: 700; }
+.neo-success { padding: .75rem; border: 2px solid #15803d; color: #166534; font-weight: 700; }
+.portal-refresh { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #d7dce5; }
+.portal-refresh h4 { margin: 0 0 .5rem; }
 .danger { background: #dc2626; color: white; }
 code { overflow-wrap: anywhere; }
 </style>
